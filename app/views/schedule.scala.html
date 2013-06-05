@@ -1,0 +1,113 @@
+@(program: Option[Program], attendances: List[Attendance], personNames: List[String])
+
+@import helper._
+@import AttendChoice._
+
+@main("定例君") {
+
+  @program.map { p =>
+    <h2>@p.title</h2>
+    <p>@p.description</p>
+  
+    @form(routes.Application.addAttendance(p.id.get.toInt)) {
+      <table id="attend-table" class="table table-bordered" style="width: auto">
+        <thead>
+          <tr>
+            <td class="span2"><!-- 日付の列 --></td>
+            <td id ="attendance-name" style="visibility: collapse; width: 80px; background-color: #D9EDF7;">
+              <span id="attendance-name-value"></span>
+            </td>
+            <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">○</div></td>
+            <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">△</div></td>
+            <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">×</div></td>
+            <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">-</div></td>
+          @personNames.map { name =>
+            <td>@name</td>
+          }
+          </tr>
+        </thead>
+
+        <tbody>
+        @p.schedules.map { s =>
+          <tr>
+            <th>@s.date.toString("yyyy-MM-dd(E)")</th>
+            <td class="select-attendance" style="visibility: collapse; background-color: #D9EDF7;">
+              <select name="attendChoice-@s.id" style="width: 50px">
+                <option selected="selected" value="@Mitei.id">-</option>
+                <option value="@Maru.id">○</option>
+                <option value="@Sankaku.id">△</option>
+                <option value="@Batu.id">×</option>
+              </select>
+            </td>
+            <td style="background-color: rgb(255,255,0);">@attendances.filter(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
+                  && a.choice == AttendChoice.Maru).length</td>
+            <td style="background-color: rgb(255,255,0);">@attendances.filter(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
+                  && a.choice == AttendChoice.Sankaku).length</td>
+            <td style="background-color: rgb(255,255,0);">@attendances.filter(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
+                  && a.choice == AttendChoice.Batu).length</td>
+            <td style="background-color: rgb(255,255,0);">@attendances.filter(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
+                  && a.choice == AttendChoice.Mitei).length</td>
+          @personNames.map { name => 
+            <td>@{
+              attendances.find(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
+                  && name == a.person.name) match { 
+                case Some(x) => x.choice match {
+                  case AttendChoice.Maru    => "○"
+                  case AttendChoice.Sankaku => "△"
+                  case AttendChoice.Batu    => "×"
+                  case AttendChoice.Mitei   => "-"
+                }
+                case None => "-"
+              }
+            }</td>
+          }
+          </tr>
+        }
+        </tbody>
+      </table>
+      
+      <div id="submit-area" style="width:300px; display: none;">
+        <input type="hidden" id="hidden-name" name="name" value="" />
+        <input type="submit" class="btn btn-primary" value="登録する">
+      </div>
+    }
+    
+    <div id="input-name-area" class="alert alert-info" style="width:300px;">
+      名前：
+      <input type="text" id="new-name" value="">
+      <button type="button" class="btn btn-primary" onclick="visibleInputCol()">新規追加する</button>
+    </div>
+  }
+  
+<script type="text/javascript"><!--
+function visibleInputCol() {
+  var name = document.getElementById("new-name").value;
+  if (name.length == 0) {
+    alert("名前を入力してください");
+    return;
+  }
+  
+  // 名前を表の中に表示
+  document.getElementById("attendance-name-value").innerHTML = name;
+  document.getElementById("attendance-name").style.visibility = "visible";
+  
+  // 出席のセレクトを表示
+  var selects = document.getElementsByClassName("select-attendance");
+  for (i = 0; i < selects.length; i++) {
+    selects[i].style.visibility = "visible";
+  }
+  
+  // 名前入力欄を消す
+  document.getElementById("input-name-area").style.display = "none";
+  
+  // 名前をhiddenタグのvalueに設定
+  document.getElementById("hidden-name").value = name;
+  
+  // 登録ボタンを表示
+  document.getElementById("submit-area").style.display = "block";
+
+}
+// -->
+</script>
+    
+}

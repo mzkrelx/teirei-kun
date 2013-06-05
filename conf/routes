@@ -3,7 +3,17 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index
+GET      /                                      controllers.Application.index
+
+# Program
+GET      /programs                              controllers.Application.listPrograms
+POST     /programs                              controllers.Application.addProgram
+GET      /programs/:id                          controllers.Application.showProgram(id: Int)
+
+# Attendance
+POST     /programs/:programId/attendances       controllers.Application.addAttendance(programId: Int)
+PUT      /programs/:programId/attendances/:id   controllers.Application.updateAttendance(id: Int, programId: Int)
+DELETE   /programs/:programId/attendances/:id   controllers.Application.deleteAttendance(id: Int, programId: Int)
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET      /assets/*file                          controllers.Assets.at(path="/public", file)
