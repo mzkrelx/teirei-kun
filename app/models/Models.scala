@@ -36,9 +36,9 @@ object Program {
         .on('title       -> program.title,
             'description -> program.description).executeInsert()
       program.schedules foreach { schedule =>
-        SQL("INSERT INTO schedule values (nextval('schedule_id_seq'), {programId}, {date})")
-          .on('programId -> programId,
-              'date      -> schedule.date.toString("yyyy-MM-dd")).executeInsert()
+        SQL("INSERT INTO schedule values (nextval('schedule_id_seq'), {program_id}, {date})")
+          .on('program_id -> programId,
+              'date       -> schedule.date.toString("yyyy-MM-dd")).executeInsert()
       }
     }
   }
