@@ -13,7 +13,7 @@ GET      /programs/:id                                controllers.Application.sh
 # Attendance
 POST     /programs/:programId/attendances             controllers.Application.addAttendance(programId: Int)
 PUT      /programs/:programId/attendances/:personId   controllers.Application.updateAttendance(programId: Int, personId: Int)
-DELETE   /programs/:programId/attendances/:id         controllers.Application.deleteAttendance(id: Int, programId: Int)
+DELETE   /programs/:programId/attendances/:personId   controllers.Application.deleteAttendance(programId: Int, personId: Int)
 
 # Javascript routing
 GET      /admin/js/routes                             controllers.Application.javascriptRoutes

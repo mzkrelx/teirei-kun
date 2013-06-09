@@ -140,28 +140,28 @@ object Attendance {
         val rows = SQL("""
           SELECT *
             FROM attendance
-            WHERE person_id = {personId}
-            AND schedule_id = {scheduleId}""")
-          .on('personId   -> person.id,
-              'scheduleId -> x._1)()
+            WHERE person_id = {person_id}
+            AND schedule_id = {schedule_id}""")
+          .on('person_id   -> person.id,
+              'schedule_id -> x._1)()
         rows.headOption match {
           case Some(_) => SQL("""
             UPDATE attendance SET choice = {choice}
-              WHERE person_id = {personId}
-              AND schedule_id = {scheduleId}""")
+              WHERE person_id = {person_id}
+              AND schedule_id = {schedule_id}""")
             .on('choice     -> x._2.id,
-                'personId   -> person.id,
-                'scheduleId -> x._1)
+                'person_id   -> person.id,
+                'schedule_id -> x._1)
             .executeUpdate()
           case None => SQL("""
             INSERT INTO attendance
               VALUES (
                 nextval('attendance_id_seq'),
-                {personId},
-                {scheduleId},
+                {person_id},
+                {schedule_id},
                 {choice})""")
-            .on('personId   -> person.id,
-                'scheduleId -> x._1,
+            .on('person_id   -> person.id,
+                'schedule_id -> x._1,
                 'choice     -> x._2.id)
             .executeInsert()
         }
@@ -178,14 +178,31 @@ object Attendance {
           INSERT INTO attendance
             VALUES (
               nextval('attendance_id_seq'),
-              {personId},
-              {scheduleId},
+              {person_id},
+              {schedule_id},
               {choice})""")
-          .on('personId   -> personId,
-              'scheduleId -> sc._1,
+          .on('person_id   -> personId,
+              'schedule_id -> sc._1,
               'choice     -> sc._2.id)
           .executeInsert()
       }
+    }
+  }
+
+  def delete(personId: Int) {
+    DB.withTransaction { implicit c =>
+      SQL("""
+        DELETE
+          FROM attendance
+          WHERE person_id = {person_id}""")
+        .on('person_id -> personId)
+        .executeUpdate()
+
+      SQL("""
+        DELETE FROM person
+          WHERE id = {id}""")
+        .on('id   -> personId)
+        .executeUpdate()
     }
   }
 

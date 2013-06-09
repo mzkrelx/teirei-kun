@@ -85,7 +85,10 @@ object Application extends Controller {
     Ok
   }
 
-  def deleteAttendance(id: Int, programId: Int) = TODO
+  def deleteAttendance(programId: Int, personId: Int) = Action { implicit request =>
+    Attendance.delete(personId)
+    Ok
+  }
 
   def editProgram(id: Int) = Action {
     NotImplemented
@@ -94,7 +97,9 @@ object Application extends Controller {
   def javascriptRoutes = Action { implicit request =>
     import routes.javascript._
     Ok(Routes.javascriptRouter("jsRouter", Some("jQuery.ajax"))(
-      routes.javascript.Application.updateAttendance)).as("text/javascript")
+      routes.javascript.Application.updateAttendance,
+      routes.javascript.Application.deleteAttendance)
+    ).as("text/javascript")
   }
 
 }

@@ -10,10 +10,10 @@
       $('button#delete-submit').on('click', deleteAttendanceSubmit);
     });
 
+    var programId = @program.get.id.get.toInt;
     var updatePersonId = 0;
     
     function updateAttendanceSubmit() {
-      var programId = @program.get.id.get.toInt;
       var name = $("#input-name-"+updatePersonId).val();
       
       if (name.length == 0) {
@@ -38,6 +38,13 @@
     
     function deleteAttendanceSubmit() {
       alert('delete');
+      jsRouter.controllers.Application.deleteAttendance(programId, updatePersonId).ajax({
+        success: function(data) {
+          window.location = '@routes.Application.showProgram(program.get.id.get.toInt)';
+        },
+        error: function(xhr, status, err) { alert(xhr.responseText) }
+      });
+      
     }
     
     function visibleInputCol() {
