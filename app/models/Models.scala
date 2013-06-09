@@ -171,7 +171,9 @@ object Attendance {
 
   def save(person: Person, scheduleAndChoices: List[(Int, AttendChoice.Value)]) {
     DB.withConnection { implicit c =>
-      val personId = Person.save(person).get
+      val personId = SQL("INSERT INTO person values (nextval('person_id_seq'), {name})")
+        .on('name -> person.name)
+        .executeInsert().get
 
       scheduleAndChoices map { sc =>
         SQL("""
@@ -213,13 +215,3 @@ case class Person(
   name: String
 )
 
-object Person {
-
-  def save(person: Person): Option[Long] = {
-    DB.withConnection { implicit c =>
-      SQL("INSERT INTO person values (nextval('person_id_seq'), {name})")
-        .on('name -> person.name)
-        .executeInsert()
-    }
-  }
-}

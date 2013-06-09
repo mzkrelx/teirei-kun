@@ -37,7 +37,6 @@
     }
     
     function deleteAttendanceSubmit() {
-      alert('delete');
       jsRouter.controllers.Application.deleteAttendance(programId, updatePersonId).ajax({
         success: function(data) {
           window.location = '@routes.Application.showProgram(program.get.id.get.toInt)';
@@ -193,7 +192,7 @@
       </table>
       
       <div id="submit-area" style="width:300px; display: none;">
-        <input type="hidden" id="hidden-name" name="name" value="" />
+        <input type="hidden" id="hidden-name" name="new_name" value="" />
         <input type="submit" class="btn btn-primary" value="登録する"><!-- 新規追加時 -->
       </div>
     }

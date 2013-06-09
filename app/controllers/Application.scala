@@ -64,7 +64,7 @@ object Application extends Controller {
     Attendance.save(
       Person(
         NotAssigned,
-        request.body.apply("name").head),
+        request.body.apply("new_name").head),
       scheduleAndChoices)
 
     Redirect(routes.Application.showProgram(programId))
