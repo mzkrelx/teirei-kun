@@ -1,15 +1,115 @@
-@(program: Option[Program], attendances: List[Attendance], personNames: List[String])
+@(program: Option[Program], attendances: List[Attendance], persons: List[Person])
 
 @import helper._
 @import AttendChoice._
 
-@main("定例君") {
+@moreScripts = {
+  <script type="text/javascript"><!--
+    $(function() {
+      $('button#update-submit').on('click', updateAttendanceSubmit);
+      $('button#delete-submit').on('click', deleteAttendanceSubmit);
+    });
+
+    var updatePersonId = 0;
+    
+    function updateAttendanceSubmit() {
+      var programId = @program.get.id.get.toInt;
+      var name = $("#input-name-"+updatePersonId).val();
+      
+      if (name.length == 0) {
+        alert('名前を入力してください');
+        return;
+      }
+      
+      jsRouter.controllers.Application.updateAttendance(programId, updatePersonId).ajax({
+        data: { name: name, 
+          @{Html{
+            program.get.schedules.map { s =>
+              s"""attend_choice_${s.id}: $$("#attend-choice-${s.id}-by-"+updatePersonId).val()"""
+            }.mkString(",")
+          }}
+        },
+        success: function(data) {
+          window.location = '@routes.Application.showProgram(program.get.id.get.toInt)';
+        },
+        error: function(xhr, status, err) { alert(xhr.responseText) }
+      });
+    }
+    
+    function deleteAttendanceSubmit() {
+      alert('delete');
+    }
+    
+    function visibleInputCol() {
+      var name = document.getElementById("new-name").value;
+      if (name.length == 0) {
+        alert("名前を入力してください");
+        return;
+      }
+      
+      // 名前を表の中に表示
+      document.getElementById("attendance-name-value").innerHTML = name;
+      document.getElementById("attendance-name").style.visibility = "visible";
+      
+      // 出席のセレクトを表示
+      var selects = document.getElementsByClassName("select-attendance");
+      for (i = 0; i < selects.length; i++) {
+        selects[i].style.visibility = "visible";
+      }
+      
+      // 新規名前入力欄を消す
+      document.getElementById("input-name-area").style.display = "none";
+      
+      // 名前をhiddenタグのvalueに設定
+      document.getElementById("hidden-name").value = name;
+      
+      // 登録ボタンを表示
+      document.getElementById("submit-area").style.display = "block";
+    
+    }
+    
+    function changeUpdateCol(personId, personName) {
+      updatePersonId = personId;
+      
+      // 名前を入力欄に変える
+      var personName = document.getElementById("person-name-" + personId);
+      personName.style.display = "none";
+      var personEdit = document.getElementById("person-edit-" + personId);
+      personEdit.style.display = "inline";
+      
+      // 1人分の各出欠をセレクトに変える
+      var attends = document.getElementsByClassName("attendance-person-" + personId);
+      var selects = document.getElementsByClassName("attendance-person-" + personId + "-edit");
+      for(var i = 0; i < attends.length; i++) {
+        attends[i].style.display = "none";
+        selects[i].style.display = "inline";
+      }
+      
+      // 他の名前リンクを不可動にする
+      var clicks = document.getElementsByClassName("change-click");
+      for(var i = 0; i < clicks.length; i++) {
+        clicks[i].onclick = new Function("alert('同時編集できません');");
+      }
+      
+      // 新規名前入力欄を消す
+      document.getElementById("input-name-area").style.display = "none";
+      
+      // 登録ボタンを表示
+      document.getElementById("update-submit-area").style.display = "block";
+    
+    }
+  // -->  
+  </script>
+}
+
+
+@main("定例君", moreScripts) {
 
   @program.map { p =>
     <h2>@p.title</h2>
     <p>@p.description</p>
   
-    @form(routes.Application.addAttendance(p.id.get.toInt)) {
+    @form(action = routes.Application.addAttendance(p.id.get.toInt), 'id -> "form") {
       <table id="attend-table" class="table table-bordered" style="width: auto">
         <thead>
           <tr>
@@ -21,8 +121,11 @@
             <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">△</div></td>
             <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">×</div></td>
             <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">-</div></td>
-          @personNames.map { name =>
-            <td>@name</td>
+          @persons.map { person =>
+            <td id="person-@person.id">
+              <span id="person-name-@person.id"><a href="#" class="change-click" onclick="changeUpdateCol(@person.id, '@person.name');">@person.name</a></span>
+              <span id="person-edit-@person.id" style="display: none;"><input id="input-name-@person.id" type="text" name="name" value="@person.name" style="width: 60px;" /></span>
+            </td>
           }
           </tr>
         </thead>
@@ -32,8 +135,9 @@
           <tr>
             <th>@s.date.toString("yyyy-MM-dd(E)")</th>
             <td class="select-attendance" style="visibility: collapse; background-color: #D9EDF7;">
-              <select name="attendChoice-@s.id" style="width: 50px">
-                <option selected="selected" value="@Mitei.id">-</option>
+              <!-- 新規入力 -->
+              <select name="attend_choice_@s.id" style="width: 50px">
+                <option value="@Mitei.id" selected>-</option>
                 <option value="@Maru.id">○</option>
                 <option value="@Sankaku.id">△</option>
                 <option value="@Batu.id">×</option>
@@ -47,19 +151,34 @@
                   && a.choice == AttendChoice.Batu).length</td>
             <td style="background-color: rgb(255,255,0);">@attendances.filter(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
                   && a.choice == AttendChoice.Mitei).length</td>
-          @personNames.map { name => 
-            <td>@{
-              attendances.find(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
-                  && name == a.person.name) match { 
-                case Some(x) => x.choice match {
-                  case AttendChoice.Maru    => "○"
-                  case AttendChoice.Sankaku => "△"
-                  case AttendChoice.Batu    => "×"
-                  case AttendChoice.Mitei   => "-"
+          @persons.map { person => 
+            <td>
+              <span class="attendance-person-@person.id">@{
+                  attendances.find(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
+                      && person.id == a.person.id) match { 
+                    case Some(x) => x.choice match {
+                      case AttendChoice.Maru    => "○"
+                      case AttendChoice.Sankaku => "△"
+                      case AttendChoice.Batu    => "×"
+                      case AttendChoice.Mitei   => "-"
+                    }
+                    case None => "-"
+                  }
                 }
-                case None => "-"
-              }
-            }</td>
+              </span>
+              <span class="attendance-person-@person.id-edit" style="display: none;">
+                    <select id="attend-choice-@(s.id)-by-@person.id" name="attend_choice_@s.id" style="width: 50px">
+                      <option value="@Mitei.id" @{if(attendances.find(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
+                      && person.id == a.person.id).map(_.choice.id).get == Mitei.id)"selected"}>-</option>
+                      <option value="@Maru.id" @{if(attendances.find(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
+                      && person.id == a.person.id).map(_.choice.id).get == Maru.id)"selected"}>○</option>
+                      <option value="@Sankaku.id" @{if(attendances.find(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
+                      && person.id == a.person.id).map(_.choice.id).get == Sankaku.id)"selected"}>△</option>
+                      <option value="@Batu.id" @{if(attendances.find(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
+                      && person.id == a.person.id).map(_.choice.id).get == Batu.id)"selected"}>×</option>
+                    </select>
+              </span>
+            </td>
           }
           </tr>
         }
@@ -68,7 +187,7 @@
       
       <div id="submit-area" style="width:300px; display: none;">
         <input type="hidden" id="hidden-name" name="name" value="" />
-        <input type="submit" class="btn btn-primary" value="登録する">
+        <input type="submit" class="btn btn-primary" value="登録する"><!-- 新規追加時 -->
       </div>
     }
     
@@ -77,37 +196,12 @@
       <input type="text" id="new-name" value="">
       <button type="button" class="btn btn-primary" onclick="visibleInputCol()">新規追加する</button>
     </div>
-  }
-  
-<script type="text/javascript"><!--
-function visibleInputCol() {
-  var name = document.getElementById("new-name").value;
-  if (name.length == 0) {
-    alert("名前を入力してください");
-    return;
-  }
-  
-  // 名前を表の中に表示
-  document.getElementById("attendance-name-value").innerHTML = name;
-  document.getElementById("attendance-name").style.visibility = "visible";
-  
-  // 出席のセレクトを表示
-  var selects = document.getElementsByClassName("select-attendance");
-  for (i = 0; i < selects.length; i++) {
-    selects[i].style.visibility = "visible";
-  }
-  
-  // 名前入力欄を消す
-  document.getElementById("input-name-area").style.display = "none";
-  
-  // 名前をhiddenタグのvalueに設定
-  document.getElementById("hidden-name").value = name;
-  
-  // 登録ボタンを表示
-  document.getElementById("submit-area").style.display = "block";
-
-}
-// -->
-</script>
     
+    <div id="update-submit-area" class="alert alert-info" style="width:300px; display: none;">
+      <button id="update-submit" type="button" class="btn btn-primary">更新する</button>
+      <button id="delete-submit" type="button" class="btn btn-danger" style="margin-left: 100px;">削除する</button>
+    </div>
+    
+  }
+
 }

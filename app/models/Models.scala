@@ -61,6 +61,26 @@ object Program {
       }
     }
   }
+
+  def findAll(): List[Program] = {
+    DB.withConnection { implicit c => {
+        val rows = SQL("""
+          SELECT * FROM program p
+            INNER JOIN schedule s
+              ON p.id = s.program_id
+        """)()
+
+        rows map { row =>
+          Program(
+            row[Pk[Long]]("program.id"), // p.id だと実行時エラー。
+            row[String]("title"),
+            row[String]("description"),
+            rows.filter(s => row[Pk[Long]]("program.id") == s[Pk[Long]]("schedule.program_id")).map (Schedule.apply).toList)
+        } toList
+      }
+    }
+  }
+
 }
 
 case class Program(
@@ -109,19 +129,43 @@ object Attendance {
     }
   }
 
-  def save(attendance: Attendance) {
-    DB.withConnection { implicit c =>
-      SQL("""
-        INSERT INTO attendance
-          VALUES (
-            nextval('attendance_id_seq'),
-            {personId},
-            {scheduleId},
-            {choice})""")
-        .on('personId   -> attendance.person.id,
-            'scheduleId -> attendance.schedule.id,
-            'choice     -> attendance.choice.id)
-        .executeInsert()
+  def update(person: Person, scheduleAndChoices: List[(Int, AttendChoice.Value)]) {
+    DB.withTransaction { implicit c =>
+      SQL("UPDATE person SET person_name = {name} WHERE id = {id}")
+        .on('name -> person.name,
+            'id   -> person.id)
+        .executeUpdate()
+
+      scheduleAndChoices foreach { x =>
+        val rows = SQL("""
+          SELECT *
+            FROM attendance
+            WHERE person_id = {personId}
+            AND schedule_id = {scheduleId}""")
+          .on('personId   -> person.id,
+              'scheduleId -> x._1)()
+        rows.headOption match {
+          case Some(_) => SQL("""
+            UPDATE attendance SET choice = {choice}
+              WHERE person_id = {personId}
+              AND schedule_id = {scheduleId}""")
+            .on('choice     -> x._2.id,
+                'personId   -> person.id,
+                'scheduleId -> x._1)
+            .executeUpdate()
+          case None => SQL("""
+            INSERT INTO attendance
+              VALUES (
+                nextval('attendance_id_seq'),
+                {personId},
+                {scheduleId},
+                {choice})""")
+            .on('personId   -> person.id,
+                'scheduleId -> x._1,
+                'choice     -> x._2.id)
+            .executeInsert()
+        }
+      }
     }
   }
 

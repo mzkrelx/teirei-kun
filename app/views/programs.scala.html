@@ -1,0 +1,15 @@
+@(programs: List[Program])
+
+@main("定例君") {
+
+  <h2>プログラム一覧</h2>
+
+  @programs.map { p =>
+    <dl>
+      <dt><a href="@routes.Application.showProgram(p.id.get.toInt)">@p.title</a></dt>
+      <dd>@p.description</dd>
+    </dl>
+  }
+
+
+}
