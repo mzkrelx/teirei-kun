@@ -3,11 +3,13 @@
 @import helper._
 
 @main("定例君") {
+  
+    <h2>定例プログラムを作成</h2>
     
     @helper.form(action = routes.Application.addProgram) {
       @inputText(programForm("title"), '_label -> "タイトル")
       @textarea(programForm("description"), '_label -> "説明")
-      @textarea(programForm("schedules"), '_label -> "開催日程")
+      @textarea(programForm("schedules"), '_label -> "開催日程 (1行ごとに yyyy/mm/dd のフォーマットで)")
       <button type="submit">作る</button>
     }
     
