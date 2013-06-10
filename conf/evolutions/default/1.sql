@@ -28,7 +28,7 @@ CREATE TABLE attendance (
     schedule_id    INTEGER      NOT NULL REFERENCES schedule(id),
     choice         INTEGER
 );
-CREATE UNIQUE INDEX attendance_idx1 ON attendance(schedule_id, person_name);
+CREATE UNIQUE INDEX attendance_idx1 ON attendance(schedule_id, person_id);
 
 
 # --- !Downs
