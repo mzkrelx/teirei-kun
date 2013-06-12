@@ -30,7 +30,7 @@ object Program {
         _.date.toString("yyyy/MM/dd")
       } mkString "\n")
 
-  def save(program: Program) {
+  def save(program: Program): Int = {
     DB.withConnection { implicit c =>
       val programId = SQL("INSERT INTO program values (nextval('program_id_seq'), {title}, {description})")
         .on('title       -> program.title,
@@ -40,6 +40,7 @@ object Program {
           .on('program_id -> programId,
               'date       -> schedule.date.toString("yyyy-MM-dd")).executeInsert()
       }
+      programId.get.toInt
     }
   }
 

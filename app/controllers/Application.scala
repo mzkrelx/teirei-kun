@@ -39,8 +39,8 @@ object Application extends Controller {
     programForm.bindFromRequest.fold(
       errors => BadRequest(views.html.index(errors)),
       program => {
-        Program.save(program)
-        Ok("プログラムを作りました。")
+        val programId = Program.save(program)
+        Redirect(routes.Application.showProgram(programId))
       }
     )
   }
@@ -49,7 +49,7 @@ object Application extends Controller {
     val program = Program.findById(id)
     val attendances = Attendance.findByProgramId(id)
     Logger.debug(attendances.map(_.person).toString)
-    val persons = attendances.map(_.person).removeDuplicates.toList
+    val persons = attendances.map(_.person).distinct.toList
     Logger.debug(persons.toString)
     Ok(views.html.schedule(program, attendances, persons))
   }
