@@ -62,25 +62,20 @@ object Program {
     }
   }
 
-  def findAll(): List[Program] = {
-    DB.withConnection { implicit c => {
-        val rows = SQL("""
-          SELECT * FROM program p
-            INNER JOIN schedule s
-              ON p.id = s.program_id
-        """)()
+  def findAll(): List[Program] =
+    DB.withConnection {
+      implicit c => {
+        val schedules = SQL("SELECT * FROM schedule")() map { row =>
+          row[Long]("program_id") -> Schedule(row[Pk[Long]]("id"), new DateTime(row[Date]("date")))
+        } toList
 
-        rows map { row =>
-          Program(
-            row[Pk[Long]]("program.id"), // p.id だと実行時エラー。
-            row[String]("title"),
-            row[String]("description"),
-            rows.filter(s => row[Pk[Long]]("program.id") == s[Pk[Long]]("schedule.program_id")).map (Schedule.apply).toList)
+        SQL("SELECT * FROM program")() map { row =>
+          val programId = row[Pk[Long]]("id")
+          Program(programId, row[String]("title"), row[String]("description"),
+            schedules.withFilter(_._1 == programId).map(_._2))
         } toList
       }
     }
-  }
-
 }
 
 case class Program(
