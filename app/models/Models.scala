@@ -37,7 +37,7 @@ object Program {
       program.schedules foreach { schedule =>
         SQL("INSERT INTO schedule values (nextval('schedule_id_seq'), {program_id}, {date})")
           .on('program_id -> programId,
-              'date       -> java.sql.Date.valueOf(schedule.date.toString("yyyy-MM-dd"))).sql.executeInsert()
+              'date       -> schedule.date.toDate).executeInsert()
       }
       programId.get.toInt
     }
