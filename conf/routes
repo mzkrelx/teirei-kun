@@ -5,6 +5,10 @@
 # Home page
 GET      /                                            controllers.Application.index
 
+GET      /account/signin                              controllers.Application.showSignIn
+GET      /githubauth/callback                         controllers.Application.callBackGitHub(code)
+
+
 # Program
 GET      /programs                                    controllers.Application.listPrograms
 POST     /programs                                    controllers.Application.addProgram

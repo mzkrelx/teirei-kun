@@ -13,6 +13,11 @@ import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import play.api.mvc._
 import anorm.Id
+import java.util.Properties
+import java.io.FileInputStream
+import play.libs.WS
+import play.api.libs.json.Json
+import java.io.File
 
 class BadParameterException(msg: String) extends Exception(msg)
 
@@ -100,6 +105,23 @@ object Application extends Controller {
       routes.javascript.Application.updateAttendance,
       routes.javascript.Application.deleteAttendance)
     ).as("text/javascript")
+  }
+
+  def showSignIn() = Action {
+    Ok(views.html.signinform())
+  }
+
+  def callBackGitHub(code: String) = Action { implicit request =>
+    val conf = new Properties()
+    conf.load(new FileInputStream(new File("/conf/conf.properties")))
+    val responce = WS.url("https://github.com/login/oauth/access_token").post(Json.toJson(Map(
+        "client_id"     -> Json.toJson(conf.getProperty("client_id")),
+        "client_secret" -> Json.toJson(conf.getProperty("client_secret")),
+        "code"          -> Json.toJson(code))).toString);
+
+    Logger.debug(responce.toString())
+
+    Ok(views.html.signinform())
   }
 
 }
