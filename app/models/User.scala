@@ -1,6 +1,15 @@
 package models
 
-object GitHubUser extends Enumeration {
+import java.net.URL
+
+import anorm._
+import anorm.SqlParser._
+import play.api.db.DB
+import play.api.Play.current
+
+
+
+object GitHubUserAPI extends Enumeration {
   val Login             = Value("login")
   val ID                = Value("id")
   val AvatarURL         = Value("avatar_url")
@@ -32,6 +41,74 @@ object GitHubUser extends Enumeration {
   val PublicGists       = Value("public_gists")
 }
 
-case class SessionUser (
-  id: String,
-  name: String)
+object GitHubUser {
+
+  def saveOrUpdate(user: GitHubUser) {
+    DB.withConnection { implicit c =>
+      val rows = SQL("""
+        SELECT *
+          FROM github_user g
+          WHERE id = {github_user_id}""")
+        .on('github_user_id -> user.id)()
+
+      rows match {
+        case r if (r.length == 1) => SQL("""
+          UPDATE github_user SET
+            login      = {login_id},
+            name       = {name},
+            email      = {email},
+            avatar_url = {avatar_url}
+          WHERE
+            id         = {id}""")
+          .on('login_id   -> user.loginID,
+              'name       -> user.name,
+              'email      -> user.email,
+              'avatar_url -> user.avatarURL.toString,
+              'id         -> user.id)
+          .executeUpdate()
+        case _ => SQL("""
+          INSERT INTO github_user
+            VALUES (
+              {id},
+              {login_id},
+              {name},
+              {email},
+              {avatar_url})""")
+          .on('id         -> user.id,
+              'login_id   -> user.loginID,
+              'name       -> user.name,
+              'email      -> user.email,
+              'avatar_url -> user.avatarURL.toString)
+          .executeInsert()
+      }
+    }
+  }
+
+  def findByID(id: Long): Option[GitHubUser] = {
+    DB.withConnection { implicit c =>
+      val rows = SQL("""
+        SELECT *
+          FROM github_user g
+          WHERE id = {id}""")
+        .on('id -> id)()
+
+      rows.headOption map { row =>
+        GitHubUser(
+          row[Pk[Long]]("id").get,
+          row[String]("login"),
+          row[String]("name"),
+          row[String]("email"),
+          new URL(row[String]("avatar_url"))
+        )
+      }
+    }
+  }
+
+}
+
+case class GitHubUser (
+  id:        Long,
+  loginID:   String,
+  name:      String,
+  email:     String,
+  avatarURL: URL)

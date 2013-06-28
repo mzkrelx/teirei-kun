@@ -1,6 +1,7 @@
 package controllers
 
 import play.api.mvc._
+import models.GitHubUser
 
 trait Secured {
 
@@ -22,4 +23,17 @@ trait Secured {
     }
   }
 
+  def withUser(f: GitHubUser => Request[AnyContent] => Result) = withAuth { username => implicit request =>
+    // 'username' is id
+    GitHubUser.findByID(username.toLong).map { user =>
+      f(user)(request)
+    }.getOrElse(onUnauthorized(request))
+  }
+
+  def withUserUrlEncoded(f: GitHubUser => Request[Map[String,Seq[String]]] => Result) = withAuthUrlEncoded { username => implicit request =>
+    // 'username' is id
+    GitHubUser.findByID(username.toLong).map { user =>
+      f(user)(request)
+    }.getOrElse(onUnauthorized(request))
+  }
 }

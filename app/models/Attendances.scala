@@ -36,7 +36,7 @@ object Attendance {
 
       rows map { row =>
         Attendance(
-          Person(row[Pk[Long]]("person_id"), row[String]("person_name")),
+          Person(row[Pk[Long]]("person_id"), row[String]("person_name"), row[Long]("github_user_id")),
           Schedule(row[Pk[Long]]("schedule_id"), new DateTime(row[Date]("date"))),
           AttendChoice.apply(row[Int]("choice")))
       } toList
@@ -45,9 +45,14 @@ object Attendance {
 
   def update(person: Person, scheduleAndChoices: List[(Int, AttendChoice.Value)]) {
     DB.withTransaction { implicit c =>
-      SQL("UPDATE person SET person_name = {name} WHERE id = {id}")
-        .on('name -> person.name,
-            'id   -> person.id)
+      SQL("""
+        UPDATE person SET
+          person_name = {name},
+          github_user_id = {github_user_id}
+        WHERE id = {id}""")
+        .on('name           -> person.name,
+            'github_user_id -> person.githubUserID,
+            'id             -> person.id)
         .executeUpdate()
 
       scheduleAndChoices foreach { x =>
@@ -63,7 +68,7 @@ object Attendance {
             UPDATE attendance SET choice = {choice}
               WHERE person_id = {person_id}
               AND schedule_id = {schedule_id}""")
-            .on('choice     -> x._2.id,
+            .on('choice      -> x._2.id,
                 'person_id   -> person.id,
                 'schedule_id -> x._1)
             .executeUpdate()
@@ -85,8 +90,13 @@ object Attendance {
 
   def save(person: Person, scheduleAndChoices: List[(Int, AttendChoice.Value)]) {
     DB.withConnection { implicit c =>
-      val personId = SQL("INSERT INTO person values (nextval('person_id_seq'), {name})")
-        .on('name -> person.name)
+      val personId = SQL("""
+        INSERT INTO person VALUES (
+          nextval('person_id_seq'),
+          {name},
+          {github_user_id})""")
+        .on('name -> person.name,
+            'github_user_id -> person.githubUserID)
         .executeInsert().get
 
       scheduleAndChoices map { sc =>
@@ -126,6 +136,7 @@ object Attendance {
 
 case class Person(
   id: Pk[Long] = NotAssigned,
-  name: String
+  name: String,
+  githubUserID: Long
 )
 

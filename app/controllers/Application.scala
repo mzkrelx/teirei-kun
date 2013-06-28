@@ -1,9 +1,8 @@
 package controllers
 
 import scala.collection.JavaConverters.mapAsJavaMapConverter
-
 import models.GitHubUser
-import models.SessionUser
+import models.GitHubUser
 import models.Utils.playConfig
 import play.api.Logger
 import play.api.Routes
@@ -11,6 +10,8 @@ import play.api.mvc.Action
 import play.api.mvc.Controller
 import play.libs.Json.toJson
 import play.libs.WS
+import java.net.URL
+import models.GitHubUserAPI
 
 object Application extends Controller {
 
@@ -19,6 +20,18 @@ object Application extends Controller {
 
   def showSignIn() = Action {
     Ok(views.html.signinform(playConfig.getString("oauth.github.client_id").get))
+  }
+
+  def testLogin() = Action {
+    val user = GitHubUser(1111111111, "loginId", "name", "email",
+        new URL("https://secure.gravatar.com/avatar/3a722bee9a12f1a32b4b5493cd48ad05?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-user-420.png"))
+    Logger.info("GitHubUser=" + user)
+
+    GitHubUser.saveOrUpdate(user)
+
+    Ok(views.html.signinsuccess(user)).withSession(
+      "username" -> user.id.toString)
+
   }
 
   def callBackGitHub(code: String) = Action { implicit request =>
@@ -46,13 +59,19 @@ object Application extends Controller {
       .get.asJson
     Logger.debug("userJson=" + user)
 
-    val sessionUser = SessionUser(
-      user.get(GitHubUser.ID.toString).asText,
-      user.get(GitHubUser.Name.toString).asText)
-    Logger.info("sessionUser=" + sessionUser)
+    val githubUser = GitHubUser(
+      user.get(GitHubUserAPI.ID.toString).asLong,
+      user.get(GitHubUserAPI.Login.toString).asText,
+      user.get(GitHubUserAPI.Name.toString).asText,
+      user.get(GitHubUserAPI.Email.toString).asText,
+      new URL(user.get(GitHubUserAPI.AvatarURL.toString).asText))
+    Logger.info("GitHubUser=" + githubUser)
 
-    Ok(views.html.signinsuccess(sessionUser)).withSession(
-      "username" -> sessionUser.name)
+    GitHubUser.saveOrUpdate(githubUser)
+
+    Ok(views.html.signinsuccess(githubUser)).withSession(
+      "username" -> githubUser.id.toString)
+       // TODO  show program list page
   }
 
   def javascriptRoutes = Action { implicit request =>
