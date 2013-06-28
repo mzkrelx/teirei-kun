@@ -6,7 +6,7 @@
   
     <h2>定例プログラムを作成</h2>
     
-    @helper.form(action = routes.Application.addProgram) {
+    @helper.form(action = routes.Programs.addProgram) {
       @inputText(programForm("title"), '_label -> "タイトル")
       @textarea(programForm("description"), '_label -> "説明")
       @textarea(programForm("schedules"), '_label -> "開催日程 (1行ごとに yyyy/mm/dd のフォーマットで)")
