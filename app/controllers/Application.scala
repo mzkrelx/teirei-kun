@@ -29,9 +29,8 @@ object Application extends Controller {
 
     GitHubUser.saveOrUpdate(user)
 
-    Ok(views.html.signinsuccess(user)).withSession(
+    Redirect(routes.Programs.listPrograms).withSession(
       "username" -> user.id.toString)
-
   }
 
   def callBackGitHub(code: String) = Action { implicit request =>
@@ -69,9 +68,8 @@ object Application extends Controller {
 
     GitHubUser.saveOrUpdate(githubUser)
 
-    Ok(views.html.signinsuccess(githubUser)).withSession(
+    Redirect(routes.Programs.listPrograms).withSession(
       "username" -> githubUser.id.toString)
-       // TODO  show program list page
   }
 
   def signOut = Action {
