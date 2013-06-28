@@ -1,22 +1,30 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Log in</title>
-    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.css")">
-    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
-    <meta name="author" content="Mizuki Yamanaka">
-  </head>
-  
-  <body>
+@(clientID: String)
 
-    <div>
-      <h2>Log in</h2>
-      <a class="btn btn-large" href="https://github.com/login/oauth/authorize?client_id=f4421186d65920ba0229">
-        <img src="@routes.Assets.at("images/GitHub-Mark-32px.png")" width="20px"/> GitHub 
+@import helper._
+
+@main("定例君") {
+    <div class="jumbotron">
+      <h1>定例君です。</h1>
+      <p class="lead">定例会議などの出欠確認を手軽に行えます!</p>
+      <a class="btn btn-large" href="https://github.com/login/oauth/authorize?@clientID">
+        <img src="@routes.Assets.at("images/GitHub-Mark-32px.png")" width="20px"/> Login with GitHub 
       </a>
     </div>
 
-  </body> 
-</html>
+    <hr>
 
+<!--
+    <div class="row-fluid marketing">
+      <div class="span6">
+        <h4>Subheading</h4>
+        <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+
+        <h4>Subheading</h4>
+        <p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras mattis consectetur purus sit amet fermentum.</p>
+
+        <h4>Subheading</h4>
+        <p>Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+      </div>
+    </div>
+-->
+}

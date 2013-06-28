@@ -1,4 +1,4 @@
-@(title: String, moreScripts: Html = Html(""))(content: Html)
+@(title: String, moreScripts: Html = Html(""), username: Option[String] = None)(content: Html)
 
 <!DOCTYPE html>
 
@@ -91,21 +91,44 @@
   </head>
   <body>
 
-    <div class="container">
-
+    <div class="container-narrow container">
       <div class="masthead">
-        <h3 class="muted"><a class="brand" href="@routes.Application.index"><img src="@routes.Assets.at("images/logo.png")" /></a></h3>
-        <div class="navbar">
-          <div class="navbar-inner">
-            <div class="container">
-              <ul class="nav">
-                <li><a href="@routes.Application.index">Home</a></li>
-                <li><a href="@routes.Programs.listPrograms">Programs</a></li>
-              </ul>
-            </div>
-          </div>
-        </div><!-- /.navbar -->
+        <ul class="nav nav-pills pull-right">
+          <li><a href="#">About</a></li>
+      @username match {
+        case None => {
+          <li><a href="@routes.Application.showSignIn">Sign in</a></li>
+        }
+        case Some(name) => {
+          <li>Hello, @name</li>
+        }
+      }
+        </ul>
+        <h3 class="muted">
+          <a class="brand" href="@routes.Application.index">
+            <img src="@routes.Assets.at("images/logo.png")" />
+          </a>
+        </h3>
       </div>
+
+      @username match {
+        case None => {}
+        case Some(name) => {
+          <div class="masthead">
+            <h3 class="muted"></h3>
+            <div class="navbar">
+              <div class="navbar-inner">
+                <div class="container">
+                  <ul class="nav">
+                    <li><a href="@routes.Application.index">Home</a></li>
+                    <li><a href="@routes.Programs.listPrograms">Programs</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div><!-- /.navbar -->
+          </div>
+        }
+      }
   
       @content
 

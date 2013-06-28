@@ -1,41 +1,27 @@
 package controllers
 
-import anorm.Id
-import anorm.NotAssigned
-import anorm.Pk
-import models.AttendChoice
-import models.Attendance
+import scala.collection.JavaConverters.mapAsJavaMapConverter
+
 import models.GitHubUser
-import models.Person
-import models.Program
-import models.Schedule
 import models.SessionUser
-import play.api._
-import play.api.data._
-import play.api.data.Forms._
-import play.api.data.validation.Constraints._
-import play.api.mvc._
-import play.libs.Json
-import play.libs.Json._
+import models.Utils.playConfig
+import play.api.Logger
+import play.api.Routes
+import play.api.mvc.Action
+import play.api.mvc.Controller
+import play.libs.Json.toJson
 import play.libs.WS
-import play.api.libs.json.JsNull
-import collection.JavaConverters._
-import models.GitHubUser
-import play.api.libs.json.JsValue
 
 object Application extends Controller {
 
-  def index = Action {
-    Ok(views.html.index(Programs.programForm))
-  }
+  /** Sign in or Program list if logged in */
+  def index = Programs.listPrograms
 
   def showSignIn() = Action {
-    Ok(views.html.signinform())
+    Ok(views.html.signinform(playConfig.getString("oauth.github.client_id").get))
   }
 
   def callBackGitHub(code: String) = Action { implicit request =>
-
-    val playConfig = Play.configuration(Play.current)
 
     val postBodyMap = Map(
       "client_id"     -> toJson(playConfig.getString("oauth.github.client_id").get),
@@ -65,7 +51,8 @@ object Application extends Controller {
       user.get(GitHubUser.Name.toString).asText)
     Logger.info("sessionUser=" + sessionUser)
 
-    Ok(views.html.signinsuccess(sessionUser))
+    Ok(views.html.signinsuccess(sessionUser)).withSession(
+      "username" -> sessionUser.name)
   }
 
   def javascriptRoutes = Action { implicit request =>

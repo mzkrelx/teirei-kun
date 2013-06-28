@@ -2,17 +2,17 @@ package controllers
 
 import anorm.Id
 import anorm.NotAssigned
+import models.AttendChoice
 import models.Attendance
 import models.Person
 import models.Program
 import play.api.Logger
 import play.api.mvc.Action
 import play.api.mvc.Controller
-import models.AttendChoice
 
-object Attendances extends Controller {
+object Attendances extends Controller with Secured {
 
-  def addAttendance(programId: Int) = Action(parse.urlFormEncoded) { implicit request =>
+  def addAttendance(programId: Int) = withAuthUrlEncoded { username => { implicit request =>
     val program = Program.findById(programId).get
 
     val scheduleAndChoices = program.schedules map { s =>
@@ -26,9 +26,9 @@ object Attendances extends Controller {
       scheduleAndChoices)
 
     Redirect(routes.Programs.showProgram(programId))
-  }
+  }}
 
-  def updateAttendance(programId: Int, personId: Int) = Action(parse.urlFormEncoded) { implicit request =>
+  def updateAttendance(programId: Int, personId: Int) = withAuthUrlEncoded { username => { implicit request =>
     val program = Program.findById(programId).get
     val scheduleAndChoices = program.schedules map { s =>
       Logger.debug("attend_choice_{scheduleId}="+request.body.apply("attend_choice_"+s.id).head.toInt)
@@ -41,11 +41,11 @@ object Attendances extends Controller {
         request.body.apply("name").head),
       scheduleAndChoices)
     Ok
-  }
+  }}
 
-  def deleteAttendance(programId: Int, personId: Int) = Action { implicit request =>
+  def deleteAttendance(programId: Int, personId: Int) = withAuthUrlEncoded { username => { implicit request =>
     Attendance.delete(personId)
     Ok
-  }
+  }}
 
 }
