@@ -5,6 +5,7 @@
 GET      /                                            controllers.Application.index
 
 GET      /account/signin                              controllers.Application.showSignIn
+GET      /account/signout                             controllers.Application.signOut
 GET      /githubauth/callback                         controllers.Application.callBackGitHub(code)
 
 

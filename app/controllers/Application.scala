@@ -74,6 +74,12 @@ object Application extends Controller {
        // TODO  show program list page
   }
 
+  def signOut = Action {
+    Redirect(routes.Application.index).withNewSession.flashing(
+      "success" -> "You are now logged out."
+    )
+  }
+
   def javascriptRoutes = Action { implicit request =>
     import routes.javascript._
     Ok(Routes.javascriptRouter("jsRouter", Some("jQuery.ajax"))(
