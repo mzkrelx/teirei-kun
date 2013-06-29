@@ -16,7 +16,6 @@ import play.Play
 
 object Application extends Controller {
 
-  /** Sign in or Program list if logged in */
   def index = showSignIn
 
   def showSignIn = Action { implicit request =>
