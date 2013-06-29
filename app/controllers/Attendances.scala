@@ -23,7 +23,7 @@ object Attendances extends Controller with Secured {
       Person(
         NotAssigned,
         request.body.apply("new_name").head,
-        user.id),
+        Option(user.id)),
       scheduleAndChoices)
 
     Redirect(routes.Programs.showProgram(programId))
@@ -40,7 +40,7 @@ object Attendances extends Controller with Secured {
       Person(
         Id(personId.toLong),
         request.body.apply("name").head,
-        user.id),
+        Option(user.id)),
       scheduleAndChoices)
     Ok
   }}

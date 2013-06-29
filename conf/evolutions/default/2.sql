@@ -1,8 +1,8 @@
 # --- !Ups
-ALTER TABLE person ADD github_user_id LONG;
+ALTER TABLE person ADD github_user_id BIGINT;
 
 CREATE TABLE github_user (
-    id             LONG                 PRIMARY KEY,
+    id             BIGINT               PRIMARY KEY,
     login          TEXT                 NOT NULL,
     name           TEXT,
     email          TEXT,

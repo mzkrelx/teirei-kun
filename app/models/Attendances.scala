@@ -36,7 +36,7 @@ object Attendance {
 
       rows map { row =>
         Attendance(
-          Person(row[Pk[Long]]("person_id"), row[String]("person_name"), row[Long]("github_user_id")),
+          Person(row[Pk[Long]]("person_id"), row[String]("person_name"), row[Option[Long]]("github_user_id")),
           Schedule(row[Pk[Long]]("schedule_id"), new DateTime(row[Date]("date"))),
           AttendChoice.apply(row[Int]("choice")))
       } toList
@@ -137,6 +137,6 @@ object Attendance {
 case class Person(
   id: Pk[Long] = NotAssigned,
   name: String,
-  githubUserID: Long
+  githubUserID: Option[Long]
 )
 

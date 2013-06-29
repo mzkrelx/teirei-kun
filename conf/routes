@@ -11,6 +11,7 @@ GET      /githubauth/callback                         controllers.Application.ca
 
 # Program
 GET      /programs                                    controllers.Programs.listPrograms
+GET      /programs/form                               controllers.Programs.showProgramForm
 POST     /programs                                    controllers.Programs.addProgram
 GET      /programs/:id                                controllers.Programs.showProgram(id: Int)
 

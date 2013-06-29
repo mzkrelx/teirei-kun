@@ -1,12 +1,16 @@
-@(clientID: String)
+@(clientID: String)(implicit flash: play.api.mvc.Flash)
 
 @import helper._
 
 @main("定例君") {
     <div class="jumbotron">
+      @flash.get("success").map { message =>
+          <div class="alert alert-success">@message</div>
+      }
+    
       <h1>定例君です。</h1>
       <p class="lead">定例会議などの出欠確認を手軽に行えます!</p>
-      <a class="btn btn-large" href="https://github.com/login/oauth/authorize?@clientID">
+      <a class="btn btn-large" href="https://github.com/login/oauth/authorize?client_id=@clientID">
         <img src="@routes.Assets.at("images/GitHub-Mark-32px.png")" width="20px"/> Login with GitHub 
       </a>
     </div>

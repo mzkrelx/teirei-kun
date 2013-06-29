@@ -1,8 +1,8 @@
-@(programForm: Form[Program])
+@(user: GitHubUser, programForm: Form[Program])
 
 @import helper._
 
-@main("定例君") {
+@main("定例君", user = Some(user)) {
   
     <h2>定例プログラムを作成</h2>
     
