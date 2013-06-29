@@ -113,10 +113,10 @@
 
   @program.map { p =>
     <h2>@p.title</h2>
-    <p>@p.description</p>
+    <pre style="margin-left: 50px; margin-right: 50px;">@p.description</pre>
   
     @form(action = routes.Attendances.addAttendance(p.id.get.toInt), 'id -> "form") {
-      <table id="attend-table" class="table table-bordered" style="width: auto">
+      <table id="attend-table" class="table table-bordere" style="width: auto">
         <thead>
           <tr>
             <td class="span2"><!-- 日付の列 --></td>
