@@ -15,87 +15,6 @@ object AttendChoice extends Enumeration {
   val Maru, Batu, Sankaku, Mitei = Value
 }
 
-object Program {
-
-  def fromForm(title: String, description: String, schedules: String) =
-    Program(NotAssigned, title, description,
-      schedules.split("\r\n") .map { s =>
-        Schedule(NotAssigned, DateTimeFormat.forPattern("yyyy/MM/dd").parseDateTime(s))
-      } toList)
-
-  def toForm(program: Program): Option[(String, String, String)] =
-    Some(program.title, program.description,
-      program.schedules map {
-        _.date.toString("yyyy/MM/dd")
-      } mkString "\n")
-
-  def save(program: Program): Int = {
-    DB.withConnection { implicit c =>
-      val programId = SQL("INSERT INTO program values (nextval('program_id_seq'), {title}, {description})")
-        .on('title       -> program.title,
-            'description -> program.description).executeInsert()
-      program.schedules foreach { schedule =>
-        SQL("INSERT INTO schedule values (nextval('schedule_id_seq'), {program_id}, {date})")
-          .on('program_id -> programId,
-              'date       -> schedule.date.toDate).executeInsert()
-      }
-      programId.get.toInt
-    }
-  }
-
-  def findById(id: Int): Option[Program] = {
-    DB.withConnection { implicit c =>
-      val rows = SQL("""
-        SELECT * FROM program p
-          INNER JOIN schedule s
-            ON p.id = s.program_id
-          WHERE p.id = {id}""")
-        .on('id -> id)()
-
-      rows.headOption map { head =>
-        Program(
-          head[Pk[Long]]("program.id"), // p.id だと実行時エラー。
-          head[String]("title"),
-          head[String]("description"),
-          rows.map(Schedule.apply).toList)
-      }
-    }
-  }
-
-  def findAll(): List[Program] =
-    DB.withConnection {
-      implicit c => {
-        val schedules = SQL("SELECT * FROM schedule")() map { row =>
-          row[Long]("program_id") -> Schedule(row[Pk[Long]]("id"), new DateTime(row[Date]("date")))
-        } toList
-
-        SQL("SELECT * FROM program")() map { row =>
-          val programId = row[Pk[Long]]("id")
-          Program(programId, row[String]("title"), row[String]("description"),
-            schedules.withFilter(_._1 == programId).map(_._2))
-        } toList
-      }
-    }
-}
-
-case class Program(
-  id:  Pk[Long] = NotAssigned,
-  title: String,
-  description: String,
-  schedules: List[Schedule]
-)
-
-object Schedule {
-
-  def apply(row: SqlRow): Schedule =
-    Schedule(row[Pk[Long]]("schedule.id"), new DateTime(row[Date]("date")))
-}
-
-case class Schedule(
-  id: Pk[Long] = NotAssigned,
-  date: DateTime
-)
-
 case class Attendance(
   person: Person,
   schedule: Schedule,
@@ -117,7 +36,7 @@ object Attendance {
 
       rows map { row =>
         Attendance(
-          Person(row[Pk[Long]]("person_id"), row[String]("person_name")),
+          Person(row[Pk[Long]]("person_id"), row[String]("person_name"), row[Option[Long]]("github_user_id")),
           Schedule(row[Pk[Long]]("schedule_id"), new DateTime(row[Date]("date"))),
           AttendChoice.apply(row[Int]("choice")))
       } toList
@@ -126,9 +45,14 @@ object Attendance {
 
   def update(person: Person, scheduleAndChoices: List[(Int, AttendChoice.Value)]) {
     DB.withTransaction { implicit c =>
-      SQL("UPDATE person SET person_name = {name} WHERE id = {id}")
-        .on('name -> person.name,
-            'id   -> person.id)
+      SQL("""
+        UPDATE person SET
+          person_name = {name},
+          github_user_id = {github_user_id}
+        WHERE id = {id}""")
+        .on('name           -> person.name,
+            'github_user_id -> person.githubUserID,
+            'id             -> person.id)
         .executeUpdate()
 
       scheduleAndChoices foreach { x =>
@@ -144,7 +68,7 @@ object Attendance {
             UPDATE attendance SET choice = {choice}
               WHERE person_id = {person_id}
               AND schedule_id = {schedule_id}""")
-            .on('choice     -> x._2.id,
+            .on('choice      -> x._2.id,
                 'person_id   -> person.id,
                 'schedule_id -> x._1)
             .executeUpdate()
@@ -166,8 +90,13 @@ object Attendance {
 
   def save(person: Person, scheduleAndChoices: List[(Int, AttendChoice.Value)]) {
     DB.withConnection { implicit c =>
-      val personId = SQL("INSERT INTO person values (nextval('person_id_seq'), {name})")
-        .on('name -> person.name)
+      val personId = SQL("""
+        INSERT INTO person VALUES (
+          nextval('person_id_seq'),
+          {name},
+          {github_user_id})""")
+        .on('name -> person.name,
+            'github_user_id -> person.githubUserID)
         .executeInsert().get
 
       scheduleAndChoices map { sc =>
@@ -207,6 +136,7 @@ object Attendance {
 
 case class Person(
   id: Pk[Long] = NotAssigned,
-  name: String
+  name: String,
+  githubUserID: Option[Long]
 )
 

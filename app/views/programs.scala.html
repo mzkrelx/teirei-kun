@@ -1,6 +1,6 @@
-@(programs: List[Program])
+@(user: GitHubUser, programs: List[Program])
 
-@main("定例君") {
+@main("定例君", user = Some(user)) {
 
   <h2>プログラム一覧</h2>
 
@@ -11,7 +11,7 @@
     case ps => {
       @ps.map { p => 
         <dl>
-          <dt><a href="@routes.Application.showProgram(p.id.get.toInt)">@p.title</a></dt>
+          <dt><a href="@routes.Programs.showProgram(p.id.get.toInt)">@p.title</a></dt>
           <dd>@p.description</dd>
         </dl>
       }

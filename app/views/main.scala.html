@@ -1,4 +1,4 @@
-@(title: String, moreScripts: Html = Html(""))(content: Html)
+@(title: String, moreScripts: Html = Html(""), user: Option[GitHubUser] = None)(content: Html)
 
 <!DOCTYPE html>
 
@@ -91,21 +91,43 @@
   </head>
   <body>
 
-    <div class="container">
-
+    <div class="container-narrow container">
       <div class="masthead">
-        <h3 class="muted"><a class="brand" href="@routes.Application.index"><img src="@routes.Assets.at("images/logo.png")" /></a></h3>
-        <div class="navbar">
-          <div class="navbar-inner">
-            <div class="container">
-              <ul class="nav">
-                <li><a href="@routes.Application.index">Home</a></li>
-                <li><a href="@routes.Application.listPrograms">Programs</a></li>
-              </ul>
-            </div>
-          </div>
-        </div><!-- /.navbar -->
+        <ul class="nav nav-pills pull-right">
+      @user match {
+        case None => {
+          <li><a href="#">About</a></li>
+          <li><a href="@routes.Application.showSignIn">Sign in</a></li>
+        }
+        case Some(u) => {
+          <li><img src="@u.avatarURL" width="32" height="32">@u.loginID</li>
+          <li><a href="#">About</a></li>
+          <li><a href="@routes.Application.signOut">Sign out</a></li>
+        }
+      }
+        </ul>
+        <h3 class="muted">
+          <a class="brand" href="@routes.Programs.listPrograms">
+            <img src="@routes.Assets.at("images/logo.png")" />
+          </a>
+        </h3>
       </div>
+
+      @user.map { u =>
+        <div class="masthead">
+          <h3 class="muted"></h3>
+          <div class="navbar">
+            <div class="navbar-inner">
+              <div class="container">
+                <ul class="nav">
+                  <li><a href="@routes.Programs.showProgramForm">Create Program</a></li>
+                  <li><a href="@routes.Programs.listPrograms">Programs</a></li>
+                </ul>
+              </div>
+            </div>
+          </div><!-- /.navbar -->
+        </div>
+      }
   
       @content
 

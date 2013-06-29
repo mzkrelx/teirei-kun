@@ -2,18 +2,23 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
 GET      /                                            controllers.Application.index
 
+GET      /account/signin                              controllers.Application.showSignIn
+GET      /account/signout                             controllers.Application.signOut
+GET      /githubauth/callback                         controllers.Application.callBackGitHub(code)
+
+
 # Program
-GET      /programs                                    controllers.Application.listPrograms
-POST     /programs                                    controllers.Application.addProgram
-GET      /programs/:id                                controllers.Application.showProgram(id: Int)
+GET      /programs                                    controllers.Programs.listPrograms
+GET      /programs/form                               controllers.Programs.showProgramForm
+POST     /programs                                    controllers.Programs.addProgram
+GET      /programs/:id                                controllers.Programs.showProgram(id: Int)
 
 # Attendance
-POST     /programs/:programId/attendances             controllers.Application.addAttendance(programId: Int)
-PUT      /programs/:programId/attendances/:personId   controllers.Application.updateAttendance(programId: Int, personId: Int)
-DELETE   /programs/:programId/attendances/:personId   controllers.Application.deleteAttendance(programId: Int, personId: Int)
+POST     /programs/:programId/attendances             controllers.Attendances.addAttendance(programId: Int)
+PUT      /programs/:programId/attendances/:personId   controllers.Attendances.updateAttendance(programId: Int, personId: Int)
+DELETE   /programs/:programId/attendances/:personId   controllers.Attendances.deleteAttendance(programId: Int, personId: Int)
 
 # Javascript routing
 GET      /admin/js/routes                             controllers.Application.javascriptRoutes

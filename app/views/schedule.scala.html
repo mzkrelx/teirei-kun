@@ -1,4 +1,4 @@
-@(program: Option[Program], attendances: List[Attendance], persons: List[Person])
+@(user: GitHubUser, program: Option[Program], attendances: List[Attendance], persons: List[Person])
 
 @import helper._
 @import AttendChoice._
@@ -21,7 +21,7 @@
         return;
       }
       
-      jsRouter.controllers.Application.updateAttendance(programId, updatePersonId).ajax({
+      jsRouter.controllers.Attendances.updateAttendance(programId, updatePersonId).ajax({
         data: { name: name, 
           @{Html{
             program.get.schedules.map { s =>
@@ -30,16 +30,16 @@
           }}
         },
         success: function(data) {
-          window.location = '@routes.Application.showProgram(program.get.id.get.toInt)';
+          window.location = '@routes.Programs.showProgram(program.get.id.get.toInt)';
         },
         error: function(xhr, status, err) { alert(xhr.responseText) }
       });
     }
     
     function deleteAttendanceSubmit() {
-      jsRouter.controllers.Application.deleteAttendance(programId, updatePersonId).ajax({
+      jsRouter.controllers.Programs.deleteAttendance(programId, updatePersonId).ajax({
         success: function(data) {
-          window.location = '@routes.Application.showProgram(program.get.id.get.toInt)';
+          window.location = '@routes.Programs.showProgram(program.get.id.get.toInt)';
         },
         error: function(xhr, status, err) { alert(xhr.responseText) }
       });
@@ -109,13 +109,13 @@
 }
 
 
-@main("定例君", moreScripts) {
+@main("定例君", user = Some(user), moreScripts = moreScripts) {
 
   @program.map { p =>
     <h2>@p.title</h2>
     <p>@p.description</p>
   
-    @form(action = routes.Application.addAttendance(p.id.get.toInt), 'id -> "form") {
+    @form(action = routes.Attendances.addAttendance(p.id.get.toInt), 'id -> "form") {
       <table id="attend-table" class="table table-bordered" style="width: auto">
         <thead>
           <tr>
