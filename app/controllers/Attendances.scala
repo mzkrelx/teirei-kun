@@ -45,8 +45,9 @@ object Attendances extends Controller with Secured {
     Ok
   }}
 
-  def deleteAttendance(programId: Int, personId: Int) = withAuthUrlEncoded { username => { implicit request =>
+  def deleteAttendance(programId: Int, personId: Int) = withAuth { username => { implicit request =>
     Attendance.delete(personId)
+    Logger.info(s"github_user_id[{$username}] deleted Attendance person_id=[{$personId}]")
     Ok
   }}
 

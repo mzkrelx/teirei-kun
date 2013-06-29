@@ -37,8 +37,8 @@
     }
     
     function deleteAttendanceSubmit() {
-      jsRouter.controllers.Programs.deleteAttendance(programId, updatePersonId).ajax({
-        success: function(data) {
+      jsRouter.controllers.Attendances.deleteAttendance(programId, updatePersonId).ajax({
+        success: function() {
           window.location = '@routes.Programs.showProgram(program.get.id.get.toInt)';
         },
         error: function(xhr, status, err) { alert(xhr.responseText) }
