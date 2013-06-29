@@ -1,9 +1,7 @@
 package controllers
 
 import java.net.URL
-
 import scala.collection.JavaConverters.mapAsJavaMapConverter
-
 import models.GitHubUser
 import models.GitHubUser
 import models.GitHubUserAPI
@@ -14,6 +12,7 @@ import play.api.mvc.Action
 import play.api.mvc.Controller
 import play.libs.Json.toJson
 import play.libs.WS
+import play.Play
 
 object Application extends Controller {
 
@@ -22,17 +21,6 @@ object Application extends Controller {
 
   def showSignIn = Action { implicit request =>
     Ok(views.html.signinform(playConfig.getString("oauth.github.client_id").get))
-  }
-
-  def testLogin() = Action {
-    val user = GitHubUser(1111111112, "loginId2", "name", "email",
-        new URL("https://secure.gravatar.com/avatar/3a722bee9a12f1a32b4b5493cd48ad05?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-user-420.png"))
-    Logger.info("GitHubUser=" + user)
-
-    GitHubUser.saveOrUpdate(user)
-
-    Redirect(routes.Programs.listPrograms).withSession(
-      "username" -> user.id.toString)
   }
 
   def callBackGitHub(code: String) = Action { implicit request =>
