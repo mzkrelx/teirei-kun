@@ -1,8 +1,9 @@
 package controllers
 
 import java.net.URL
+
 import scala.collection.JavaConverters.mapAsJavaMapConverter
-import models.GitHubUser
+
 import models.GitHubUser
 import models.GitHubUserAPI
 import models.Utils.playConfig
@@ -12,7 +13,6 @@ import play.api.mvc.Action
 import play.api.mvc.Controller
 import play.libs.Json.toJson
 import play.libs.WS
-import play.Play
 
 object Application extends Controller {
 
@@ -58,7 +58,7 @@ object Application extends Controller {
     GitHubUser.saveOrUpdate(githubUser)
 
     Redirect(routes.Programs.listPrograms).withSession(
-      "username" -> githubUser.id.toString)
+      "githubID" -> githubUser.id.toString)
   }
 
   def signOut = Action {
