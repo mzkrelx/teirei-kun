@@ -16,6 +16,7 @@ POST     /programs                                    controllers.Programs.addPr
 GET      /programs/:id                                controllers.Programs.showProgram(id: Int)
 
 # Attendance
+GET      /programs/:programId/attendances/new         controllers.Attendances.showAddForm(programId: Int)
 POST     /programs/:programId/attendances             controllers.Attendances.addAttendance(programId: Int)
 PUT      /programs/:programId/attendances/:personId   controllers.Attendances.updateAttendance(programId: Int, personId: Int)
 DELETE   /programs/:programId/attendances/:personId   controllers.Attendances.deleteAttendance(programId: Int, personId: Int)

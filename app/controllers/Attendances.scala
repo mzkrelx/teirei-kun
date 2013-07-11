@@ -12,6 +12,11 @@ import play.api.mvc.Controller
 
 object Attendances extends Controller with Secured {
 
+  def showAddForm(programId: Int) = withUser { user => { implicit request =>
+    val program = Program.findById(programId)
+    Ok(views.html.attendanceform(user, program))
+  }}
+
   def addAttendance(programId: Int) = withUserUrlEncoded { user => { implicit request =>
     val program = Program.findById(programId).get
 

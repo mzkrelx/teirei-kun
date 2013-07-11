@@ -8,8 +8,9 @@
     $(function() {
       $('button#update-submit').on('click', updateAttendanceSubmit);
       $('button#delete-submit').on('click', deleteAttendanceSubmit);
+      $('#myModal').modal()
     });
-
+    
     var programId = @program.get.id.get.toInt;
     var updatePersonId = 0;
     
@@ -46,34 +47,6 @@
       
     }
     
-    function visibleInputCol() {
-      var name = document.getElementById("new-name").value;
-      if (name.length == 0) {
-        alert("名前を入力してください");
-        return;
-      }
-      
-      // 名前を表の中に表示
-      document.getElementById("attendance-name-value").innerHTML = name;
-      document.getElementById("attendance-name").style.visibility = "visible";
-      
-      // 出席のセレクトを表示
-      var selects = document.getElementsByClassName("select-attendance");
-      for (i = 0; i < selects.length; i++) {
-        selects[i].style.visibility = "visible";
-      }
-      
-      // 新規名前入力欄を消す
-      document.getElementById("input-name-area").style.display = "none";
-      
-      // 名前をhiddenタグのvalueに設定
-      document.getElementById("hidden-name").value = name;
-      
-      // 登録ボタンを表示
-      document.getElementById("submit-area").style.display = "block";
-    
-    }
-    
     function changeUpdateCol(personId, personName) {
       updatePersonId = personId;
       
@@ -97,9 +70,6 @@
         clicks[i].onclick = new Function("alert('同時編集できません');");
       }
       
-      // 新規名前入力欄を消す
-      document.getElementById("input-name-area").style.display = "none";
-      
       // 登録ボタンを表示
       document.getElementById("update-submit-area").style.display = "block";
     
@@ -114,15 +84,28 @@
   @program.map { p =>
     <h2>@p.title</h2>
     <pre style="margin-left: 50px; margin-right: 50px;">@p.description</pre>
+    
+    <p>
+      <a href="@routes.Attendances.showAddForm(program.get.id.get.toInt)" role="button" 
+         class="btn btn-primary" data-toggle="modal" data-target="#formModal">出席情報を追加する</a>
+    </p>
+    
+    <!-- Modal -->
+    <div id="formModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="formModalLabel" aria-hidden="true">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="formModalLabel">出席情報入力</h3>
+      </div>
+      <div class="modal-body">
+        <!-- showAddForm -->
+      </div>
+    </div>
   
     @form(action = routes.Attendances.addAttendance(p.id.get.toInt), 'id -> "form") {
       <table id="attend-table" class="table table-bordere" style="width: auto">
         <thead>
           <tr>
             <td class="span2"><!-- 日付の列 --></td>
-            <td id ="attendance-name" style="visibility: collapse; width: 80px; background-color: #D9EDF7;">
-              <span id="attendance-name-value"></span>
-            </td>
             <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">○</div></td>
             <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">△</div></td>
             <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">×</div></td>
@@ -140,15 +123,6 @@
         @p.schedules.map { s =>
           <tr>
             <th>@s.date.toString("yyyy-MM-dd(E)")</th>
-            <td class="select-attendance" style="visibility: collapse; background-color: #D9EDF7;">
-              <!-- 新規入力 -->
-              <select name="attend_choice_@s.id" style="width: 50px">
-                <option value="@Mitei.id" selected>-</option>
-                <option value="@Maru.id">○</option>
-                <option value="@Sankaku.id">△</option>
-                <option value="@Batu.id">×</option>
-              </select>
-            </td>
             <td style="background-color: rgb(255,255,0);">@attendances.filter(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
                   && a.choice == AttendChoice.Maru).length</td>
             <td style="background-color: rgb(255,255,0);">@attendances.filter(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
@@ -190,18 +164,7 @@
         }
         </tbody>
       </table>
-      
-      <div id="submit-area" style="width:300px; display: none;">
-        <input type="hidden" id="hidden-name" name="new_name" value="" />
-        <input type="submit" class="btn btn-primary" value="登録する"><!-- 新規追加時 -->
-      </div>
     }
-    
-    <div id="input-name-area" class="alert alert-info" style="width:300px;">
-      名前：
-      <input type="text" id="new-name" value="">
-      <button type="button" class="btn btn-primary" onclick="visibleInputCol()">新規追加する</button>
-    </div>
     
     <div id="update-submit-area" class="alert alert-info" style="width:300px; display: none;">
       <button id="update-submit" type="button" class="btn btn-primary">更新する</button>

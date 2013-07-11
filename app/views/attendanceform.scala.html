@@ -1,0 +1,41 @@
+@(user: GitHubUser, program: Option[Program])
+
+@import helper._
+@import AttendChoice._
+
+@program.map { p =>    
+  @form(action = routes.Attendances.addAttendance(p.id.get.toInt), 'id -> "form") {
+    <table id="attend-table" class="table table-bordere" style="width: auto">
+      <thead>
+        <tr>
+          <td class="span2"><!-- 日付の列 --></td>
+          <td id ="attendance-name" style="width: 80px; background-color: #D9EDF7;">
+            名前：<input type="text" class="input-small" name="new_name" value="@user.name">
+          </td>
+        </tr>
+      </thead>
+
+      <tbody>
+      @p.schedules.map { s =>
+        <tr>
+          <th>@s.date.toString("yyyy-MM-dd(E)")</th>
+          <td class="select-attendance" style="background-color: #D9EDF7;">
+            <!-- 新規入力 -->
+            <select name="attend_choice_@s.id" style="width: 50px">
+              <option value="@Mitei.id" selected>-</option>
+              <option value="@Maru.id">○</option>
+              <option value="@Sankaku.id">△</option>
+              <option value="@Batu.id">×</option>
+            </select>
+          </td>
+        </tr>
+      }
+      </tbody>
+    </table>
+    
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">登録する</button>
+      <button class="btn" data-dismiss="modal" aria-hidden="true">キャンセル</button>
+    </div>    
+  }
+}
