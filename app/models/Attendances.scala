@@ -18,7 +18,14 @@ object AttendChoice extends Enumeration {
 case class Attendance(
   person: Person,
   schedule: Schedule,
-  choice: AttendChoice.Value
+  choice: AttendChoice.Value,
+  memo: Option[String]
+)
+
+case class AttendanceRequest(
+  scheduleId: Long,
+  choice: AttendChoice.Value,
+  memo: Option[String]
 )
 
 object Attendance {
@@ -38,7 +45,11 @@ object Attendance {
         Attendance(
           Person(row[Pk[Long]]("person_id"), row[String]("person_name"), row[Option[Long]]("github_user_id")),
           Schedule(row[Pk[Long]]("schedule_id"), new DateTime(row[Date]("date"))),
-          AttendChoice.apply(row[Int]("choice")))
+          AttendChoice.apply(row[Int]("choice")),
+          row[String]("memo") match {
+            case "" => None
+            case s  => Some(s)
+          })
       } toList
     }
   }
@@ -88,7 +99,7 @@ object Attendance {
     }
   }
 
-  def save(person: Person, scheduleAndChoices: List[(Int, AttendChoice.Value)]) {
+  def save(person: Person, attendanceRequests: List[AttendanceRequest]) {
     DB.withConnection { implicit c =>
       val personId = SQL("""
         INSERT INTO person VALUES (
@@ -99,17 +110,19 @@ object Attendance {
             'github_user_id -> person.githubUserID)
         .executeInsert().get
 
-      scheduleAndChoices map { sc =>
+      attendanceRequests map { attendance =>
         SQL("""
           INSERT INTO attendance
             VALUES (
               nextval('attendance_id_seq'),
               {person_id},
               {schedule_id},
-              {choice})""")
+              {choice},
+              {memo})""")
           .on('person_id   -> personId,
-              'schedule_id -> sc._1,
-              'choice     -> sc._2.id)
+              'schedule_id -> attendance.scheduleId,
+              'choice      -> attendance.choice.id,
+              'memo        -> attendance.memo)
           .executeInsert()
       }
     }

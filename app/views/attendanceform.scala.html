@@ -5,13 +5,18 @@
 
 @program.map { p =>    
   @form(action = routes.Attendances.addAttendance(p.id.get.toInt), 'id -> "form") {
-    <table id="attend-table" class="table table-bordere" style="width: auto">
+    <div class="control-group">
+      <label class="control-label" for="input_name">名前</label>
+      <div class="controls">
+        <input type="text" id="input_name" class="input-medium" name="new_name" value="@user.name">
+      </div>
+    </div>
+    <table id="attend-table" class="table table-bordered" style="width: auto">
       <thead>
         <tr>
-          <td class="span2"><!-- 日付の列 --></td>
-          <td id ="attendance-name" style="width: 80px; background-color: #D9EDF7;">
-            名前：<input type="text" class="input-small" name="new_name" value="@user.name">
-          </td>
+          <th class="span2">日程</td>
+          <th style="background-color: #D9EDF7;">出席</td>
+          <th style="background-color: #D9EDF7;">コメント</td>
         </tr>
       </thead>
 
@@ -27,6 +32,9 @@
               <option value="@Sankaku.id">△</option>
               <option value="@Batu.id">×</option>
             </select>
+          </td>
+          <td style="background-color: #D9EDF7;">
+            <input type="text" class="input-xlarge" name="memo_@s.id" value="">
           </td>
         </tr>
       }
