@@ -10,7 +10,7 @@ import play.api.mvc.Controller
 object Attendances extends Controller with Secured {
 
   def showAddForm(programId: Int) = withUser { user => { implicit request =>
-    val program = Program.findById(programId)
+    val program = Program.findById(programId).get
     Ok(views.html.attendanceform(user, program))
   }}
 
@@ -33,11 +33,18 @@ object Attendances extends Controller with Secured {
     Redirect(routes.Programs.showProgram(programId))
   }}
 
+  def showUpdateForm(programId: Int, personId: Int) = withUser { user => { implicit request =>
+    val program = Program.findById(programId).get
+    val attendances = Attendance.findByPersonId(personId)
+    Ok(views.html.attendanceform(user, program, Some(attendances)))
+  }}
+
   def updateAttendance(programId: Int, personId: Int) = withUserUrlEncoded { user => { implicit request =>
     val program = Program.findById(programId).get
-    val scheduleAndChoices = program.schedules map { s =>
-      Logger.debug("attend_choice_{scheduleId}="+request.body.apply("attend_choice_"+s.id).head.toInt)
-      (s.id.get.toInt, AttendChoice.apply(request.body.apply("attend_choice_"+s.id).head.toInt))
+    val attendanceRequests = program.schedules map { s =>
+      AttendanceRequest(s.id.get,
+        AttendChoice.apply(request.body.apply("attend_choice_"+s.id).head.toInt),
+        request.body.apply("memo_"+s.id).headOption)
     } toList
 
     Attendance.update(
@@ -45,7 +52,7 @@ object Attendances extends Controller with Secured {
         Id(personId.toLong),
         request.body.apply("name").head,
         Option(user.id)),
-      scheduleAndChoices)
+      attendanceRequests)
     Ok
   }}
 
