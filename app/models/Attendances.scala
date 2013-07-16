@@ -47,10 +47,7 @@ object Attendance {
           Person(row[Pk[Long]]("person_id"), row[String]("person_name"), row[Option[Long]]("github_user_id")),
           Schedule(row[Pk[Long]]("schedule_id"), new DateTime(row[Date]("date"))),
           AttendChoice.apply(row[Int]("choice")),
-          row[String]("memo") match {
-            case "" => None
-            case s  => Some(s)
-          })
+          row[Option[String]]("memo"))
       } toList
     }
   }
@@ -71,10 +68,7 @@ object Attendance {
           Person(row[Pk[Long]]("person_id"), row[String]("person_name"), row[Option[Long]]("github_user_id")),
           Schedule(row[Pk[Long]]("schedule_id"), new DateTime(row[Date]("date"))),
           AttendChoice.apply(row[Int]("choice")),
-          row[String]("memo") match {
-            case "" => None
-            case s  => Some(s)
-          })
+          row[Option[String]]("memo"))
       } toList
     }
   }
