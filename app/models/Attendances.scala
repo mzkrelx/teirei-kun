@@ -39,7 +39,8 @@ object Attendance {
             INNER JOIN schedule s ON a.schedule_id = s.id
             INNER JOIN program p ON s.program_id = p.id
             INNER JOIN person pe ON a.person_id = pe.id
-          WHERE program_id = {program_id}""")
+          WHERE program_id = {program_id}
+          ORDER BY pe.created_at""")
         .on('program_id -> programId)()
 
       rows map { row =>
