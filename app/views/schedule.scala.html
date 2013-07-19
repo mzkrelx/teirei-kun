@@ -12,6 +12,9 @@
   <script type="text/javascript"><!--
     var programId = @program.get.id;
     $(function() {
+      
+      $('a[rel=tooltip]').tooltip();
+      
       $('#addAttendanceSubmit').on('click', function() {
         var name = $('#input_name').val();
         if (name.trim().length == 0) {
@@ -226,18 +229,30 @@
                   && a.choice == AttendChoice.Mitei).length</td>
           @persons.map { person => 
             <td>
-              <span class="attendance-person-@person.id">@{
-                  attendances.find(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
-                      && person.id == a.person.id) match { 
-                    case Some(x) => x.choice match {
-                      case AttendChoice.Maru    => "○"
-                      case AttendChoice.Sankaku => "△"
-                      case AttendChoice.Batu    => "×"
-                      case AttendChoice.Mitei   => "-"
+              <span class="attendance-person-@person.id">
+                  @attendances.find(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") && 
+                    person.id == a.person.id
+                  ) match { 
+                    case Some(x) => {
+                      @x.memo match {
+                        case Some(m) if (m.length > 0) => {
+                          <a rel="tooltip" data-original-title="@m" href="#">@x.choice match {
+                            case AttendChoice.Maru    => { ○ }
+                            case AttendChoice.Sankaku => { △ }
+                            case AttendChoice.Batu    => { × }
+                            case AttendChoice.Mitei   => { - }
+                          }</a>
+                        }
+                        case _ => { @x.choice match {
+                          case AttendChoice.Maru    => { ○ }
+                          case AttendChoice.Sankaku => { △ }
+                          case AttendChoice.Batu    => { × }
+                          case AttendChoice.Mitei   => { - }
+                        }}
+                      }
                     }
-                    case None => "-"
+                    case None => { - }
                   }
-                }
               </span>
               <span class="attendance-person-@person.id-edit" style="display: none;">
                     <select id="attend-choice-@(s.id)-by-@person.id" name="attend_choice_@s.id" style="width: 50px">
