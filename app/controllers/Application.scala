@@ -70,6 +70,7 @@ object Application extends Controller {
   def javascriptRoutes = Action { implicit request =>
     import routes.javascript._
     Ok(Routes.javascriptRouter("jsRouter", Some("jQuery.ajax"))(
+      routes.javascript.Attendances.addAttendance,
       routes.javascript.Attendances.updateAttendance,
       routes.javascript.Attendances.deleteAttendance)
     ).as("text/javascript")

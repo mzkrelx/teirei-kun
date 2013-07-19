@@ -45,7 +45,9 @@ object Programs extends Controller with Secured {
     Logger.debug(attendances.map(_.person).toString)
     val persons = attendances.map(_.person).distinct.toList
     Logger.debug(persons.toString)
-    Ok(views.html.schedule(user, program, attendances, persons))
+    val ownPersonID = persons.find(p => p.githubUserID == Some(user.id)) map (_.id.get.toInt)
+    Logger.debug("ownPersonID=" + ownPersonID)
+    Ok(views.html.schedule(user, program, attendances, persons, ownPersonID))
   }}
 
   def editProgram(id: Int) = withAuth { username => { implicit request =>

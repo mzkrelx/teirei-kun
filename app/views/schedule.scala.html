@@ -1,17 +1,75 @@
-@(user: GitHubUser, program: Option[Program], attendances: List[Attendance], persons: List[Person])
+@(user: GitHubUser, 
+  program: Option[Program], 
+  attendances: List[Attendance], 
+  persons: List[Person],
+  ownPersonID: Option[Int] = None
+)
 
 @import helper._
 @import AttendChoice._
 
 @moreScripts = {
   <script type="text/javascript"><!--
+    var programId = @program.get.id;
     $(function() {
+      
+      $('a[rel=tooltip]').tooltip();
+      
+      $('#addAttendanceSubmit').on('click', function() {
+        var name = $('#input_name').val();
+        if (name.trim().length == 0) {
+          alert('名前を入力してください');
+          return;
+        }
+        jsRouter.controllers.Attendances.addAttendance(programId).ajax({
+          data: {
+            new_name: name,
+            @{Html{
+              program.get.schedules.map { s =>
+                s"""attend_choice_${s.id}: $$("select[name=attend_choice_${s.id}]").val()"""
+              }.mkString(",")
+            }},
+            @{Html{
+              program.get.schedules.map { s =>
+                s"""memo_${s.id}: $$("input[name=memo_${s.id}]").val()"""
+              }.mkString(",")
+            }}
+          },
+          success: function() { window.location = '@routes.Programs.showProgram(program.get.id.get.toInt)' },
+          error: function(xhr) { alert('failed to add attendance. [' + xhr.status + ']'); }
+        });
+      });
+      $('#updateAttendanceSubmit').on('click', function() {
+        jsRouter.controllers.Attendances.updateAttendance(programId, @ownPersonID.getOrElse(-1)).ajax({
+          data: {
+            name: $('#input_name').val(),
+            @{Html{
+              program.get.schedules.map { s =>
+                s"""attend_choice_${s.id}: $$("select[name=attend_choice_${s.id}]").val()"""
+              }.mkString(",")
+            }},
+            @{Html{
+              program.get.schedules.map { s =>
+                s"""memo_${s.id}: $$("input[name=memo_${s.id}]").val()"""
+              }.mkString(",")
+            }}
+          },
+          success: function() { window.location = '@routes.Programs.showProgram(program.get.id.get.toInt)' },
+          error: function(xhr) { alert('failed to add attendance. [' + xhr.status + ']'); }
+        });
+      });
+      $('#deleteAttendanceSubmit').on('click', function() {
+        jsRouter.controllers.Attendances.deleteAttendance(programId, @ownPersonID.getOrElse(-1)).ajax({
+          success: function() {
+            window.location = '@routes.Programs.showProgram(program.get.id.get.toInt)';
+          },
+          error: function(xhr) { alert('failed to delete attendance. [' + xhr.status + ']'); }
+        });
+      });
       $('button#update-submit').on('click', updateAttendanceSubmit);
       $('button#delete-submit').on('click', deleteAttendanceSubmit);
-      $('#myModal').modal()
     });
     
-    var programId = @program.get.id.get.toInt;
     var updatePersonId = 0;
     
     function updateAttendanceSubmit() {
@@ -27,6 +85,11 @@
           @{Html{
             program.get.schedules.map { s =>
               s"""attend_choice_${s.id}: $$("#attend-choice-${s.id}-by-"+updatePersonId).val()"""
+            }.mkString(",")
+          }},
+          @{Html{
+            program.get.schedules.map { s =>
+              s"""memo_${s.id}: ''"""
             }.mkString(",")
           }}
         },
@@ -86,8 +149,16 @@
     <pre style="margin-left: 50px; margin-right: 50px;">@p.description</pre>
     
     <p>
-      <a href="@routes.Attendances.showAddForm(program.get.id.get.toInt)" role="button" 
-         class="btn btn-primary" data-toggle="modal" data-target="#formModal">出席情報を追加する</a>
+      @ownPersonID match {
+        case None => {
+          <a href="@routes.Attendances.showAddForm(program.get.id.get.toInt)" role="button" 
+             class="btn btn-primary" data-toggle="modal" data-target="#formModal">出席情報を追加する</a>
+        }
+        case Some(x) => {
+          <a href="@routes.Attendances.showUpdateForm(program.get.id.get.toInt, x)" role="button" 
+             class="btn btn-primary" data-toggle="modal" data-target="#formModal">出席情報を更新する</a>
+        }
+      }    
     </p>
     
     <!-- Modal -->
@@ -99,6 +170,16 @@
       <div class="modal-body">
         <!-- showAddForm -->
       </div>
+      <div class="modal-footer">
+        @ownPersonID match { 
+          case None => {<button id="addAttendanceSubmit" class="btn btn-primary">登録する</button>}
+          case Some(_) => {
+            <button id="updateAttendanceSubmit" class="btn btn-primary">更新する</button>
+            <button id="deleteAttendanceSubmit" class="btn btn-danger">削除する</button>
+          }
+        }
+        <button class="btn" data-dismiss="modal" aria-hidden="true">キャンセル</button>
+      </div>        
     </div>
   
     @form(action = routes.Attendances.addAttendance(p.id.get.toInt), 'id -> "form") {
@@ -110,11 +191,26 @@
             <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">△</div></td>
             <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">×</div></td>
             <td style="background-color: rgb(255,255,0); width: 12px;"><div align="center">-</div></td>
-          @persons.map { person =>
-            <td id="person-@person.id">
-              <span id="person-name-@person.id"><a href="#" class="change-click" onclick="changeUpdateCol(@person.id, '@person.name');">@person.name</a></span>
-              <span id="person-edit-@person.id" style="display: none;"><input id="input-name-@person.id" type="text" name="name" value="@person.name" style="width: 60px;" /></span>
-            </td>
+          @ownPersonID match {
+            case None => {
+              @persons.map { person =>
+                <td id="person-@person.id">
+                  <span id="person-name-@person.id"><a href="#" class="change-click" onclick="changeUpdateCol(@person.id, '@person.name');">@person.name</a></span>
+                  <span id="person-edit-@person.id" style="display: none;"><input id="input-name-@person.id" type="text" name="name" value="@person.name" style="width: 60px;" /></span>
+                </td>
+              }
+            }
+            case Some(x) => {
+              @persons.map { 
+                case person if (person.id == ownPersonID) => {
+                  <a href="@routes.Attendances.showUpdateForm(program.get.id.get.toInt, x)" role="button" 
+                     class="btn btn-primary" data-toggle="modal" data-target="#formModal">@person.name</a>
+                }
+                case person => {
+                  <td>@person.name</td>
+                }
+              }
+            }    
           }
           </tr>
         </thead>
@@ -133,18 +229,30 @@
                   && a.choice == AttendChoice.Mitei).length</td>
           @persons.map { person => 
             <td>
-              <span class="attendance-person-@person.id">@{
-                  attendances.find(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") 
-                      && person.id == a.person.id) match { 
-                    case Some(x) => x.choice match {
-                      case AttendChoice.Maru    => "○"
-                      case AttendChoice.Sankaku => "△"
-                      case AttendChoice.Batu    => "×"
-                      case AttendChoice.Mitei   => "-"
+              <span class="attendance-person-@person.id">
+                  @attendances.find(a => a.schedule.date.toString("yyyy-MM-dd") == s.date.toString("yyyy-MM-dd") && 
+                    person.id == a.person.id
+                  ) match { 
+                    case Some(x) => {
+                      @x.memo match {
+                        case Some(m) if (m.length > 0) => {
+                          <a rel="tooltip" data-original-title="@m" href="#">@x.choice match {
+                            case AttendChoice.Maru    => { ○ }
+                            case AttendChoice.Sankaku => { △ }
+                            case AttendChoice.Batu    => { × }
+                            case AttendChoice.Mitei   => { - }
+                          }</a>
+                        }
+                        case _ => { @x.choice match {
+                          case AttendChoice.Maru    => { ○ }
+                          case AttendChoice.Sankaku => { △ }
+                          case AttendChoice.Batu    => { × }
+                          case AttendChoice.Mitei   => { - }
+                        }}
+                      }
                     }
-                    case None => "-"
+                    case None => { - }
                   }
-                }
               </span>
               <span class="attendance-person-@person.id-edit" style="display: none;">
                     <select id="attend-choice-@(s.id)-by-@person.id" name="attend_choice_@s.id" style="width: 50px">
