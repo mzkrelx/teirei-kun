@@ -18,11 +18,13 @@ GET      /programs/:id                                controllers.Programs.showP
 # Attendance
 GET      /programs/:programId/attendances/new         controllers.Attendances.showAddForm(programId: Int)
 POST     /programs/:programId/attendances             controllers.Attendances.addAttendance(programId: Int)
+GET      /programs/:programId/attendances/:personId   controllers.Attendances.showUpdateForm(programId: Int, personId: Int)
 PUT      /programs/:programId/attendances/:personId   controllers.Attendances.updateAttendance(programId: Int, personId: Int)
 DELETE   /programs/:programId/attendances/:personId   controllers.Attendances.deleteAttendance(programId: Int, personId: Int)
 
 # Javascript routing
-GET      /admin/js/routes                             controllers.Application.javascriptRoutes
+GET      /js/routes                                   controllers.Application.javascriptRoutes
 
 # Map static resources from the /public folder to the /assets URL path
 GET      /assets/*file                                controllers.Assets.at(path="/public", file)
+
