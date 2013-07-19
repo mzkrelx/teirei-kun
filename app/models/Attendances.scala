@@ -98,10 +98,12 @@ object Attendance {
     SQL("""
       UPDATE person SET
         person_name = {name},
-        github_user_id = {github_user_id}
+        github_user_id = {github_user_id},
+        updated_at = {updated_at}
       WHERE id = {id}""")
       .on('name           -> person.name,
           'github_user_id -> person.githubUserID,
+          'updated_at     -> DateTime.now().toDate(),
           'id             -> person.id)
       .executeUpdate()
   }
@@ -142,9 +144,13 @@ object Attendance {
         INSERT INTO person VALUES (
           nextval('person_id_seq'),
           {name},
-          {github_user_id})""")
+          {github_user_id},
+          {created_at},
+          {updated_at})""")
         .on('name -> person.name,
-            'github_user_id -> person.githubUserID)
+            'github_user_id -> person.githubUserID,
+            'created_at     -> DateTime.now().toDate(),
+            'updated_at     -> DateTime.now().toDate())
         .executeInsert().get
 
       attendanceRequests map { attendance =>
