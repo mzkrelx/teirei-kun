@@ -1,11 +1,8 @@
 package controllers
 
-import java.net.URL
-
 import scala.collection.JavaConverters.mapAsJavaMapConverter
 
 import models.GitHubUser
-import models.GitHubUserAPI
 import models.Utils.playConfig
 import play.api.Logger
 import play.api.Routes
@@ -41,18 +38,13 @@ object Application extends Controller {
     val accessToken = responce.get.asJson.get("access_token").asText
     Logger.debug("accessToken=" + accessToken)
 
-    val user = WS.url("https://api.github.com/user")
+    val userJson = WS.url("https://api.github.com/user")
       .setQueryParameter("access_token", accessToken)
       .get
       .get.asJson
-    Logger.debug("userJson=" + user)
+    Logger.debug("userJson=" + userJson)
 
-    val githubUser = GitHubUser(
-      user.get(GitHubUserAPI.ID.toString).asLong,
-      user.get(GitHubUserAPI.Login.toString).asText,
-      user.get(GitHubUserAPI.Name.toString).asText,
-      user.get(GitHubUserAPI.Email.toString).asText,
-      new URL(user.get(GitHubUserAPI.AvatarURL.toString).asText))
+    val githubUser = GitHubUser.fromJson(userJson)
     Logger.info("GitHubUser=" + githubUser)
 
     GitHubUser.saveOrUpdate(githubUser)
@@ -75,5 +67,4 @@ object Application extends Controller {
       routes.javascript.Attendances.deleteAttendance)
     ).as("text/javascript")
   }
-
 }
