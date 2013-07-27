@@ -2,12 +2,14 @@ package models
 
 import java.net.URL
 
-import anorm._
-import anorm.SqlParser._
-import play.api.db.DB
+import org.codehaus.jackson.JsonNode
+
+import anorm.Pk
+import anorm.SQL
+import anorm.sqlToSimple
+import anorm.toParameterValue
 import play.api.Play.current
-
-
+import play.api.db.DB
 
 object GitHubUserAPI extends Enumeration {
   val Login             = Value("login")
@@ -43,6 +45,16 @@ object GitHubUserAPI extends Enumeration {
 
 object GitHubUser {
 
+  def fromJson(json: JsonNode) = {
+    GitHubUser(
+      json.get(GitHubUserAPI.ID.toString).asLong,
+      json.get(GitHubUserAPI.Login.toString).asText,
+      Option(json.get(GitHubUserAPI.Name.toString)) map (_.asText) filterNot (_ == ""),
+      Option(json.get(GitHubUserAPI.Email.toString)) map (_.asText) filterNot (_ == ""),
+      Option(json.get(GitHubUserAPI.AvatarURL.toString)) map
+        (_.asText) filterNot (_ == "") map { new URL(_) })
+  }
+
   def saveOrUpdate(user: GitHubUser) {
     DB.withConnection { implicit c =>
       val rows = SQL("""
@@ -61,9 +73,9 @@ object GitHubUser {
           WHERE
             id         = {id}""")
           .on('login_id   -> user.loginID,
-              'name       -> user.name,
-              'email      -> user.email,
-              'avatar_url -> user.avatarURL.toString,
+              'name       -> user.name.getOrElse(""),
+              'email      -> user.email.getOrElse(""),
+              'avatar_url -> user.avatarURL.map(_.toString).getOrElse(""),
               'id         -> user.id)
           .executeUpdate()
         case _ => SQL("""
@@ -76,9 +88,9 @@ object GitHubUser {
               {avatar_url})""")
           .on('id         -> user.id,
               'login_id   -> user.loginID,
-              'name       -> user.name,
-              'email      -> user.email,
-              'avatar_url -> user.avatarURL.toString)
+              'name       -> user.name.getOrElse(""),
+              'email      -> user.email.getOrElse(""),
+              'avatar_url -> user.avatarURL.map(_.toString).getOrElse(""))
           .executeInsert()
       }
     }
@@ -96,9 +108,9 @@ object GitHubUser {
         GitHubUser(
           row[Pk[Long]]("id").get,
           row[String]("login"),
-          row[String]("name"),
-          row[String]("email"),
-          new URL(row[String]("avatar_url"))
+          Option(row[String]("name")).filterNot(_ == ""),
+          Option(row[String]("email")).filterNot(_ == ""),
+          Option(row[String]("avatar_url")).filterNot(_ == "") map { new URL(_) }
         )
       }
     }
@@ -109,6 +121,6 @@ object GitHubUser {
 case class GitHubUser (
   id:        Long,
   loginID:   String,
-  name:      String,
-  email:     String,
-  avatarURL: URL)
+  name:      Option[String],
+  email:     Option[String],
+  avatarURL: Option[URL])
