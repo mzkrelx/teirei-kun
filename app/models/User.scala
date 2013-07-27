@@ -49,9 +49,10 @@ object GitHubUser {
     GitHubUser(
       json.get(GitHubUserAPI.ID.toString).asLong,
       json.get(GitHubUserAPI.Login.toString).asText,
-      Option(json.get(GitHubUserAPI.Name.toString)) map { _.asText },
-      Option(json.get(GitHubUserAPI.Email.toString)) map { _.asText },
-      Option(json.get(GitHubUserAPI.AvatarURL.toString)) map { a => new URL(a.asText) })
+      Option(json.get(GitHubUserAPI.Name.toString)) map (_.asText) filterNot (_ == ""),
+      Option(json.get(GitHubUserAPI.Email.toString)) map (_.asText) filterNot (_ == ""),
+      Option(json.get(GitHubUserAPI.AvatarURL.toString)) map
+        (_.asText) filterNot (_ == "") map { new URL(_) })
   }
 
   def saveOrUpdate(user: GitHubUser) {
