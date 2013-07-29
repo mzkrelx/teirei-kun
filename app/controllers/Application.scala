@@ -25,22 +25,24 @@ object Application extends Controller {
 
   def callBackGitHub(code: String) = Action { implicit request =>
 
-    val postBodyMap = Map(
-      "client_id"     -> toJson(clientID),
-      "client_secret" -> toJson(clientSecret),
-      "code"          -> toJson(code)
-    ).asJava
+    def accessToken() = {
+      val postBodyJson = toJson(Map(
+        "client_id"     -> toJson(clientID),
+        "client_secret" -> toJson(clientSecret),
+        "code"          -> toJson(code)
+      ).asJava)
+      Logger.debug("postBody=" + postBodyJson)
 
-    val postBodyJson = toJson(postBodyMap)
-    Logger.debug("postBody=" + postBodyJson)
+      val responce = WS.url("https://github.com/login/oauth/access_token")
+        .setHeader("Accept", "application/json")
+        .post(postBodyJson);
+      Logger.debug("response=" + responce.get.asJson)
 
-    val responce = WS.url("https://github.com/login/oauth/access_token")
-      .setHeader("Accept", "application/json")
-      .post(postBodyJson);
-    Logger.debug("response=" + responce.get.asJson)
+      val accessToken = responce.get.asJson.get("access_token").asText
+      Logger.debug("accessToken=" + accessToken)
 
-    val accessToken = responce.get.asJson.get("access_token").asText
-    Logger.debug("accessToken=" + accessToken)
+      accessToken
+    }
 
     val userJson = WS.url("https://api.github.com/user")
       .setQueryParameter("access_token", accessToken)
