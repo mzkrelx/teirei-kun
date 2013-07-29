@@ -13,17 +13,21 @@ import play.libs.WS
 
 object Application extends Controller {
 
+  lazy val clientID = playConfig.getString("oauth.github.client_id").get
+
+  lazy val clientSecret = playConfig.getString("oauth.github.client_secret").get
+
   def index = showSignIn
 
   def showSignIn = Action { implicit request =>
-    Ok(views.html.signinform(playConfig.getString("oauth.github.client_id").get))
+    Ok(views.html.signinform(clientID))
   }
 
   def callBackGitHub(code: String) = Action { implicit request =>
 
     val postBodyMap = Map(
-      "client_id"     -> toJson(playConfig.getString("oauth.github.client_id").get),
-      "client_secret" -> toJson(playConfig.getString("oauth.github.client_secret").get),
+      "client_id"     -> toJson(clientID),
+      "client_secret" -> toJson(clientSecret),
       "code"          -> toJson(code)
     ).asJava
 
