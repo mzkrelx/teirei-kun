@@ -59,6 +59,9 @@
         });
       });
       $('#deleteAttendanceSubmit').on('click', function() {
+        if (!confirm("あなたの出席情報をを本当に削除してよろしいですか？")) {
+          return;
+        }   
         jsRouter.controllers.Attendances.deleteAttendance(programId, @ownPersonID.getOrElse(-1)).ajax({
           success: function() {
             window.location = '@routes.Programs.showProgram(program.get.id.get.toInt)';
@@ -101,6 +104,10 @@
     }
     
     function deleteAttendanceSubmit() {
+      if (!confirm("あなたの出席情報をを本当に削除してよろしいですか？")) {
+        return;
+      }   
+      
       jsRouter.controllers.Attendances.deleteAttendance(programId, updatePersonId).ajax({
         success: function() {
           window.location = '@routes.Programs.showProgram(program.get.id.get.toInt)';
@@ -157,6 +164,7 @@
         case Some(x) => {
           <a href="@routes.Attendances.showUpdateForm(program.get.id.get.toInt, x)" role="button" 
              class="btn btn-primary" data-toggle="modal" data-target="#formModal">出席情報を更新する</a>
+          <button type="button" id="deleteAttendanceSubmit" class="btn btn-danger" style="margin-left: 50px;">出席情報を削除する</button>
         }
       }    
     </p>
@@ -175,7 +183,6 @@
           case None => {<button id="addAttendanceSubmit" class="btn btn-primary">登録する</button>}
           case Some(_) => {
             <button id="updateAttendanceSubmit" class="btn btn-primary">更新する</button>
-            <button id="deleteAttendanceSubmit" class="btn btn-danger">削除する</button>
           }
         }
         <button class="btn" data-dismiss="modal" aria-hidden="true">キャンセル</button>
